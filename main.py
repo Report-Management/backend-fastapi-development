@@ -3,7 +3,7 @@ from fastapi import FastAPI
 import fastapi.openapi.utils as openapi
 from fastapi.middleware.cors import CORSMiddleware
 from core import engine, Base
-from modules.account.controller import router as auth_router
+from modules.account.controller import router as account_router
 from modules.report.controller import router as report_router
 
 app = FastAPI()
@@ -33,7 +33,7 @@ async def root():
     return {"message": "FAST-API"}
 
 app.openapi = custom_swagger
-app.include_router(auth_router)
+app.include_router(account_router)
 app.include_router(report_router)
 app.add_middleware(
     CORSMiddleware,
