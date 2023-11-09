@@ -8,5 +8,3 @@ class Report(BaseModel):
     view: str
     spam: bool
     
-    class Config():
-        from_attributes = True
