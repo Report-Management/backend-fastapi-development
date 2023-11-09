@@ -1,4 +1,4 @@
 from .controller import *
 from .model import *
-from .repositorys import *
+from .repository import *
 from .entity import *
