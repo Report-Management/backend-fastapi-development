@@ -8,9 +8,9 @@ from sqlalchemy.orm import relationship
 
 T = TypeVar('T')
 
-class Account(Base):
+class AccountEntity(Base):
     __tablename__ = 'accounts'
-    accountID = Column(Integer, primary_key=True, index=True)
+    accountID = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     username = Column(String)
     email = Column(String)
     password = Column(String)

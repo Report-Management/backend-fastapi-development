@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-class Report(BaseModel):
+class ReportModel(BaseModel):
     category: str
     priority: str
     header: str
