@@ -20,6 +20,13 @@ def create(request: AccountModel, db: Session = Depends(get_db)):
         res = SupabaseService().supabase.auth.sign_up({
             "email": request.email,
             "password": request.password,
+            "options": {
+                "data": {
+                    "username": request.username,
+                    "email": request.email,
+                    "role": request.role,
+                }
+            }
         })
         print(res.user.id)
         _account = AccountEntity(

@@ -18,7 +18,6 @@ def get_db():
 
 
 # JWT Configuration
-
-SECRET_KEY = "NinnCode6000"
+SECRET_KEY = "QFtGiZPo/eEgYWSxl0Y4mTa+j5+TMUlluP7mXnQ2I1xwy3iSJLxrkGxjdz3o59hdhRwIE2s5T5FpjT7zO5zIHw=="
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
