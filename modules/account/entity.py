@@ -17,4 +17,4 @@ class AccountEntity(Base):
     role = Column(Enum('User', 'Admin', name='account_role'), default='User')
     profilePhoto = Column(String, default=None)
 
-    reports = relationship('Report', back_populates='reporter')
+    reports = relationship('ReportEntity', back_populates='reporter')

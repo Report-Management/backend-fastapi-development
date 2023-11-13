@@ -24,5 +24,4 @@ class ReportEntity(Base):
     completed = Column(Boolean, default=False)
     spam = Column(Boolean)
     accountID = Column(UUID(as_uuid=True), ForeignKey('accounts.accountID'))
-
-    reporter = relationship("Account", back_populates="reports")
+    reporter = relationship("AccountEntity", back_populates="reports")
