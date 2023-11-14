@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, status
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo
 from .model import ReportModel
-from .repository import ReportRepo
+from .repository import ReportRepository
 
 router = APIRouter(
     prefix="/Report",

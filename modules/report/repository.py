@@ -1,12 +1,9 @@
 from core import BaseRepo
 from sqlalchemy.orm import Session
-from typing import Generic, TypeVar
 from .entity import ReportEntity
 from .model import ReportModel
 
-T = TypeVar('T')
-
-class ReportRepo(BaseRepo):
+class ReportRepository(BaseRepo):
 
     @staticmethod
     def create(request: ReportModel, db: Session):

@@ -39,21 +39,16 @@ class BaseRepo:
 class JWTRepo:
 
     @staticmethod
-    def generate_token(data: dict, expires_delta: Optional[timedelta] = None):
+    def generate_token(data: dict):
         to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
-        to_encode.update({"exp": expire})
         encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encode_jwt
 
     @staticmethod
     def decode_token(token: str):
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            return payload.get("id")
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], audience="authenticated")
+            return payload.get('sub')
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=403, detail="Token expired.")
         except jwt.InvalidTokenError:
@@ -89,7 +84,7 @@ class JWTBearer(HTTPBearer):
     def verify_jwt(jwt_token: str):
         isTokenValid: bool = False
         try:
-            payload = jwt.decode(jwt_token, SECRET_KEY, algorithm=[ALGORITHM])
+            payload = jwt.decode(jwt_token, SECRET_KEY, algorithm=[ALGORITHM], audience="authenticated")
         except:
             payload = None
 

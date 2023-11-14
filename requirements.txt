@@ -5,5 +5,8 @@ psycopg2-binary
 passlib
 python-jose
 python-multipart
-jwt
 supabase
+PyJWT
+python-jose
+bcrypt
+cryptography
