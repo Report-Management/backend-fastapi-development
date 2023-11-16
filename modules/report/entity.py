@@ -20,4 +20,5 @@ class ReportEntity(Base):
     approval = Column(Boolean, default=False)
     completed = Column(Boolean, default=False)
     userID = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    
     reporter = relationship("UserEntity", back_populates="reports")
