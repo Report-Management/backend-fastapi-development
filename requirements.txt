@@ -10,3 +10,5 @@ PyJWT
 python-jose
 bcrypt
 cryptography
+supabase
+jwt
