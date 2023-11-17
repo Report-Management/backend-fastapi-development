@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 
-
 class createReportModel(BaseModel):
     category: str
     priority: str
@@ -16,3 +15,20 @@ class updateReportModel(BaseModel):
     header: str
     information: str
     view: str  
+
+
+class showReportModel(BaseModel):
+    id : str
+    category: str
+    priority: str
+    reportedTime: str
+    header: str
+    information: str
+    view: str
+    summary: str
+    photo: str
+    view: str
+    approval: bool
+    completed: bool
+    spam: bool
+    userID: str

@@ -10,6 +10,20 @@ class ReportRepository(BaseRepo):
 
 
     @staticmethod
+    def get_all_reports(db: Session):
+        reports = db.query(ReportEntity).all()
+        return reports
+
+
+    @staticmethod
+    def get_report(id: str, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id).first()
+        if not report:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Report with the {id} is not available")
+        return report
+    
+
+    @staticmethod
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(
             id=uuid.uuid4(),

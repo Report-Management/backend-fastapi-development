@@ -13,6 +13,16 @@ router = APIRouter(
 )
 
 
+@router.get('/show', summary=None, name='SHOW_ALL', operation_id='get_all_reports')
+def get_all_reports(db: Session = Depends(get_db)):
+    return ReportRepository.get_all_reports(db)
+
+
+@router.get('/show/{id}', summary=None, name='SHOW', operation_id='get_report')
+def get_report(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.get_report(id, db)
+
+
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
 def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))
