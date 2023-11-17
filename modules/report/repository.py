@@ -3,12 +3,17 @@ from sqlalchemy.orm import Session
 from .entity import ReportEntity
 from .model import ReportModel
 from fastapi import HTTPException, status
+from sqlalchemy import UUID
+import uuid
 
 class ReportRepository(BaseRepo):
 
     @staticmethod
-    def create(request: ReportModel, db: Session):
-        new_report = ReportEntity(category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=request.spam, accountID=1)
+    def create(request: ReportModel, db: Session, id: UUID):
+        new_report = ReportEntity(
+            id=uuid.uuid4(),
+            category=request.category, 
+            priority=request.priority, header=request.header, information=request.information, view=request.view, spam=request.spam, userID=id)
         db.add(new_report)
         db.commit()
         db.refresh(new_report)

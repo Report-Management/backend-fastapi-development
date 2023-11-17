@@ -19,6 +19,7 @@ class ReportEntity(Base):
     view = Column(Enum('Public', 'Anonymous', name='report_view'))
     approval = Column(Boolean, default=False)
     completed = Column(Boolean, default=False)
+    spam = Column(Boolean, default=False)
     userID = Column(UUID(as_uuid=True), ForeignKey('users.id'))
     
     reporter = relationship("UserEntity", back_populates="reports")

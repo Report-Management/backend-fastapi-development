@@ -41,9 +41,6 @@ def create(request: UserModel, db: Session = Depends(get_db), _token: str = Depe
         )
         UserRepository.insert(db, _account)
         return HTTPException(status_code=200, detail="Account created.")
-    except RequestValidationError as error:
-        print(error.errors())
-        raise HTTPException(status_code=422, detail="Validation Error.")
     except TimeoutError as error:
         SupabaseService().supabase.auth.admin.delete_user(res.user.id)
         raise HTTPException(status_code=408, detail="Request Timeout.")
