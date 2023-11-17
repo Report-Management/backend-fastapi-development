@@ -42,6 +42,26 @@ class ReportRepository(BaseRepo):
         report.update({'category':request.category, 'priority':request.priority, 'header':request.header, 'information':request.information, 'view':request.view})
         db.commit()
         return 'Updated successfully'
+    
+
+    @staticmethod
+    def mark_completed(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'completed': True})
+        db.commit()
+        return 'Mark completed successfully'
+    
+
+    @staticmethod
+    def mark_aprroved(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'approval': True})
+        db.commit()
+        return 'Mark approved successfully'
 
 
     @staticmethod

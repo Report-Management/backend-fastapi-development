@@ -29,8 +29,18 @@ def create(request: createReportModel, db: Session = Depends(get_db), id: UUID =
 
 
 @router.put('/update/{id}', summary=None, name='UPDATE', operation_id='update_report')
-def update(request: updateReportModel, db: Session = Depends(get_db)):
+def update(id: str, request: updateReportModel, db: Session = Depends(get_db)):
     return ReportRepository.update(id, request, db)
+
+
+@router.put('/markCompleted', summary=None, name='MARK_COMPLETED', operation_id='mark_completed_report')
+def mark_completed(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.mark_completed(id, db)
+
+
+@router.put('/markApproved', summary=None, name='MARK_APPROVED', operation_id='mark_approved_report')
+def mark_done(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.mark_aprroved(id, db)
 
 
 @router.delete('/delete/{id}', summary=None, name='DELETE', operation_id='delete_report')
