@@ -23,6 +23,7 @@ class ReportRepository(BaseRepo):
         return report
     
 
+    @staticmethod
     def get_my_report(USERid: UUID, db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).all()
         if not reports:
@@ -30,6 +31,7 @@ class ReportRepository(BaseRepo):
         return reports
     
 
+    @staticmethod
     def get_completed_report(db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.completed == True).all()
         if not reports:
@@ -37,6 +39,7 @@ class ReportRepository(BaseRepo):
         return reports
     
 
+    @staticmethod
     def get_high_priority_report(db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.priority == 'High').all()
         if not reports:
@@ -44,6 +47,7 @@ class ReportRepository(BaseRepo):
         return reports
     
 
+    @staticmethod
     def get_medium_priority_report(db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.priority == 'Medium').all()
         if not reports:
@@ -51,6 +55,7 @@ class ReportRepository(BaseRepo):
         return reports
     
 
+    @staticmethod
     def get_low_priority_report(db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.priority == 'Low').all()
         if not reports:
