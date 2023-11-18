@@ -28,6 +28,26 @@ def get_my_report(USERid: UUID = Depends(JWTBearer()), db: Session = Depends(get
     return ReportRepository.get_my_report(JWTRepo.decode_token(USERid), db)
 
 
+@router.get('/showCompletedReport', summary=None, name='SHOW_COMPLETED_REPORT', operation_id='get_completed_report')
+def get_my_report(db: Session = Depends(get_db)):
+    return ReportRepository.get_completed_report(db)
+
+
+@router.get('/showHighPriorityReport', summary=None, name='SHOW_HIGH_PRIORITY_REPORT', operation_id='get_high_priority_report')
+def get_my_report(db: Session = Depends(get_db)):
+    return ReportRepository.get_high_priority_report(db)
+
+
+@router.get('/showMediumPriorityReport', summary=None, name='SHOW_MEDIUM_PRIORITY_REPORT', operation_id='get_medium_priority_report')
+def get_my_report(db: Session = Depends(get_db)):
+    return ReportRepository.get_medium_priority_report(db)
+
+
+@router.get('/showLowPriorityReport', summary=None, name='SHOW_LOW_PRIORITY_REPORT', operation_id='get_low_priority_report')
+def get_my_report(db: Session = Depends(get_db)):
+    return ReportRepository.get_low_priority_report(db)
+
+
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
 def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))

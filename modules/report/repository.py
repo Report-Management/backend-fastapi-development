@@ -30,6 +30,34 @@ class ReportRepository(BaseRepo):
         return reports
     
 
+    def get_completed_report(db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.completed == True).all()
+        if not reports:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no completed reports")
+        return reports
+    
+
+    def get_high_priority_report(db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.priority == 'High').all()
+        if not reports:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no high priority reports")
+        return reports
+    
+
+    def get_medium_priority_report(db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.priority == 'Medium').all()
+        if not reports:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no medium priority reports")
+        return reports
+    
+
+    def get_low_priority_report(db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.priority == 'Low').all()
+        if not reports:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
+        return reports
+
+
     @staticmethod
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(
