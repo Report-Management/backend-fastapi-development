@@ -23,6 +23,13 @@ class ReportRepository(BaseRepo):
         return report
     
 
+    def get_my_report(USERid: UUID, db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).all()
+        if not reports:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Report with the USER {USERid} is not available")
+        return reports
+    
+
     @staticmethod
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(

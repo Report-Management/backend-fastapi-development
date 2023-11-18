@@ -23,6 +23,11 @@ def get_report(id: str, db: Session = Depends(get_db)):
     return ReportRepository.get_report(id, db)
 
 
+@router.get('/showMyReport', summary=None, name='SHOW_MY_REPORT', operation_id='get_my_report')
+def get_my_report(USERid: UUID = Depends(JWTBearer()), db: Session = Depends(get_db)):
+    return ReportRepository.get_my_report(JWTRepo.decode_token(USERid), db)
+
+
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
 def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))
