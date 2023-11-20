@@ -17,18 +17,25 @@ class updateReportModel(BaseModel):
     view: str  
 
 
-class showReportModel(BaseModel):
-    id : str
+class updateCategoryModel(BaseModel):
     category: str
+
+
+class updatePriorityModel(BaseModel):
     priority: str
-    reportedTime: str
+
+
+class updateHeaderModel(BaseModel):
     header: str
+
+
+class updateInformationModel(BaseModel):
     information: str
-    view: str
+
+
+class updateSummaryModel(BaseModel):
     summary: str
-    photo: str
+
+
+class updateViewModel(BaseModel):
     view: str
-    approval: bool
-    completed: bool
-    spam: bool
-    userID: str
