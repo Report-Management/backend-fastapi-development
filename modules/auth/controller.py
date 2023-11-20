@@ -2,7 +2,7 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, HTTPException, status
 from core import get_db, JWTRepo, TokenResponse, ResponseSchema, JWTBearer, SupabaseService
-from modules.users import UserModel, UserLoginModel, UserEntity
+from modules.users import UserModel, UserLoginModel, UserEntity, UserRepository
 from .repository import AuthRepository
 
 router = APIRouter(
@@ -10,7 +10,6 @@ router = APIRouter(
     tags=["Authentications"],
     responses={422: {"description": "Validation Error"}},
 )
-
 
 @router.post('/login', summary=None, name='POST', operation_id='login')
 def login(request: UserLoginModel, db: Session = Depends(get_db)):
