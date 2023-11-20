@@ -1,7 +1,7 @@
 from core import BaseRepo
 from sqlalchemy.orm import Session
 from .entity import ReportEntity
-from .model import createReportModel, updateReportModel
+from .model import *
 from fastapi import HTTPException, status
 from sqlalchemy import UUID
 import uuid
@@ -91,6 +91,56 @@ class ReportRepository(BaseRepo):
         db.commit()
         return 'Updated successfully'
     
+
+    @staticmethod
+    def update_category(id: UUID, request: updateCategoryModel, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'category': request.category})
+        db.commit()
+        return 'Updated category successfully'
+    
+
+    @staticmethod
+    def update_priority(id: UUID, request: updatePriorityModel, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'category': request.priority})
+        db.commit()
+        return 'Updated category successfully'
+    
+
+    @staticmethod
+    def update_header(id: UUID, request: updateHeaderModel, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'category': request.header})
+        db.commit()
+        return 'Updated header successfully'
+
+
+    @staticmethod
+    def update_information(id: UUID, request: updateInformationModel, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'category': request.information})
+        db.commit()
+        return 'Updated information successfully'
+    
+
+    @staticmethod
+    def update_view(id: UUID, request: updateViewModel, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'category': request.view})
+        db.commit()
+        return 'Updated view successfully'
+
 
     @staticmethod
     def mark_completed(id: UUID, db: Session):

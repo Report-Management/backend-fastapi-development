@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, status
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo
-from .model import createReportModel, updateReportModel
+from .model import *
 from .repository import ReportRepository
 from sqlalchemy import UUID
 
@@ -61,6 +61,26 @@ def create(request: createReportModel, db: Session = Depends(get_db), id: UUID =
 @router.put('/update/{id}', summary=None, name='UPDATE', operation_id='update_report')
 def update(id: str, request: updateReportModel, db: Session = Depends(get_db)):
     return ReportRepository.update(id, request, db)
+
+
+@router.put('/updateCategory/{id}', summary=None, name='UPDATE_CATEGORY', operation_id='update_report_category')
+def update(id: str, request: updateCategoryModel, db: Session = Depends(get_db)):
+    return ReportRepository.update_category(id, request, db)
+
+
+@router.put('/updatePriority/{id}', summary=None, name='UPDATE_PRIORITY', operation_id='update_report_priority')
+def update(id: str, request: updatePriorityModel, db: Session = Depends(get_db)):
+    return ReportRepository.update_priority(id, request, db)
+
+
+@router.put('/updateHeader/{id}', summary=None, name='UPDATE_HEADER', operation_id='update_report_header')
+def update(id: str, request: updateHeaderModel, db: Session = Depends(get_db)):
+    return ReportRepository.update_header(id, request, db)
+
+
+@router.put('/updateInformation/{id}', summary=None, name='UPDATE_INFORMATION', operation_id='update_report_information')
+def update(id: str, request: updateInformationModel, db: Session = Depends(get_db)):
+    return ReportRepository.update_information(id, request, db)
 
 
 @router.put('/markCompleted', summary=None, name='MARK_COMPLETED', operation_id='mark_completed_report')

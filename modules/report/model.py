@@ -33,9 +33,5 @@ class updateInformationModel(BaseModel):
     information: str
 
 
-class updateSummaryModel(BaseModel):
-    summary: str
-
-
 class updateViewModel(BaseModel):
     view: str
