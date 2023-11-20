@@ -4,8 +4,9 @@ from typing import TypeVar, Generic
 
 T = TypeVar('T')
 
-class UserRepository(BaseRepo):
+class AuthRepository(BaseRepo):
 
     @staticmethod
     def find_by_email(db: Session, model: Generic[T], email: str):
+        print(email)
         return db.query(model).filter(model.email == email).first()

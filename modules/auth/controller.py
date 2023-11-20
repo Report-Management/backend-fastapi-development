@@ -1,15 +1,31 @@
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from core import get_db, JWTRepo, TokenResponse, ResponseSchema, JWTBearer, SupabaseService
-from modules.users import UserModel, UserRepository, UserLoginModel, UserEntity
-import uuid
+from modules.users import UserModel, UserLoginModel, UserEntity
+from .repository import AuthRepository
 
 router = APIRouter(
     prefix="/Authentications",
     tags=["Authentications"],
     responses={422: {"description": "Validation Error"}},
 )
+
+
+@router.post('/login', summary=None, name='POST', operation_id='login')
+def login(request: UserLoginModel, db: Session = Depends(get_db)):
+    try:
+        _user = AuthRepository.find_by_email(db, UserEntity, request.email)
+        print(_user.password)
+        if _user is None:
+            raise HTTPException(status_code=404, detail="User not found")
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        if not pwd_context.verify(request.password, _user.password):
+            raise HTTPException(status_code=401, detail="Incorrect password")
+        _token = JWTRepo.generate_token({"id": str(_user.id)})
+        return HTTPException(status_code=status.HTTP_202_ACCEPTED, detail={"token": _token, "token_type": "bearer"})
+    except Exception as error:
+        raise HTTPException(status_code=500, detail="Failed to login.")
 
 @router.post('/create', summary=None, name='POST', operation_id='create', dependencies=[Depends(JWTBearer())])
 def create(request: UserModel, db: Session = Depends(get_db), _token: str = Depends(JWTBearer())):
@@ -61,3 +77,5 @@ async def check(id: str, db: Session = Depends(get_db)):
         return HTTPException(status_code=200, detail=_user.role)
     except Exception as error:
         raise HTTPException(status_code=500, detail="Failed to check role.")
+
+
