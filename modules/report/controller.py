@@ -33,6 +33,11 @@ def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_completed_report(db)
 
 
+@router.get('/showSpamReport', summary=None, name='SHOW_SPAM_REPORT', operation_id='get_spam_report')
+def get_spam_report(db: Session = Depends(get_db)):
+    return ReportRepository.get_spam_report(db)
+
+
 @router.get('/showHighPriorityReport', summary=None, name='SHOW_HIGH_PRIORITY_REPORT', operation_id='get_high_priority_report')
 def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_high_priority_report(db)

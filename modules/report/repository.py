@@ -40,6 +40,14 @@ class ReportRepository(BaseRepo):
     
 
     @staticmethod
+    def get_spam_report(db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.spam == True).all()
+        if not reports:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no spam reports")
+        return reports
+    
+
+    @staticmethod
     def get_high_priority_report(db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.priority == 'High').all()
         if not reports:
