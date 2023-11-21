@@ -1,4 +1,5 @@
 from core import BaseRepo
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from .entity import ReportEntity
 from .model import *
@@ -49,7 +50,7 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_high_priority_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.priority == 'High').all()
+        reports = db.query(ReportEntity).filter(and_(ReportEntity.priority == 'High', ReportEntity.spam == False)).all()
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no high priority reports")
         return reports
@@ -57,7 +58,7 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_medium_priority_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.priority == 'Medium').all()
+        reports = db.query(ReportEntity).filter(and_(ReportEntity.priority == 'Medium', ReportEntity.spam == False)).all()
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no medium priority reports")
         return reports
@@ -65,7 +66,7 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_low_priority_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.priority == 'Low').all()
+        reports = db.query(ReportEntity).filter(and_(ReportEntity.priority == 'Low', ReportEntity.spam == False)).all()
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
         return reports
