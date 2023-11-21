@@ -153,6 +153,16 @@ class ReportRepository(BaseRepo):
     
 
     @staticmethod
+    def unmark_completed(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'completed': False})
+        db.commit()
+        return 'Unmark completed successfully'
+    
+
+    @staticmethod
     def mark_aprroved(id: UUID, db: Session):
         report = db.query(ReportEntity).filter(ReportEntity.id == id)
         if not report.first():
@@ -160,6 +170,36 @@ class ReportRepository(BaseRepo):
         report.update({'approval': True})
         db.commit()
         return 'Mark approved successfully'
+    
+
+    @staticmethod
+    def unmark_aprroved(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'approval': False})
+        db.commit()
+        return 'Unmark approved successfully'
+    
+
+    @staticmethod
+    def mark_spam(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'spam': True})
+        db.commit()
+        return 'Mark spam successfully'
+    
+
+    @staticmethod
+    def unmark_spam(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'spam': False})
+        db.commit()
+        return 'Unmark spam successfully'
 
 
     @staticmethod

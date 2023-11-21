@@ -88,9 +88,29 @@ def mark_completed(id: str, db: Session = Depends(get_db)):
     return ReportRepository.mark_completed(id, db)
 
 
+@router.put('/unmarkCompleted', summary=None, name='UNMARK_COMPLETED', operation_id='unmark_completed_report')
+def unmark_completed(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.unmark_completed(id, db)
+
+
 @router.put('/markApproved', summary=None, name='MARK_APPROVED', operation_id='mark_approved_report')
-def mark_done(id: str, db: Session = Depends(get_db)):
+def mark_approved(id: str, db: Session = Depends(get_db)):
     return ReportRepository.mark_aprroved(id, db)
+
+
+@router.put('/unmarkApproved', summary=None, name='UNMARK_APPROVED', operation_id='unmark_approved_report')
+def unmark_approved(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.unmark_aprroved(id, db)
+
+
+@router.put('/markSpam', summary=None, name='MARK_SPAM', operation_id='mark_spam_report')
+def mark_spam(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.mark_spam(id, db)
+
+
+@router.put('/unmarkSpam', summary=None, name='UNMARK_SPAM', operation_id='unmark_spam_report')
+def unmark_spam(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.unmark_spam(id, db)
 
 
 @router.delete('/delete/{id}', summary=None, name='DELETE', operation_id='delete_report')
