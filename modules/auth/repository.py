@@ -8,5 +8,4 @@ class AuthRepository(BaseRepo):
 
     @staticmethod
     def find_by_email(db: Session, model: Generic[T], email: str):
-        print(email)
         return db.query(model).filter(model.email == email).first()
