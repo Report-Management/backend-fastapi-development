@@ -5,6 +5,7 @@ from .entity import ReportEntity
 from .model import *
 from fastapi import HTTPException, status
 from sqlalchemy import UUID
+from .summarize import text_summarization_bert
 import uuid
 
 class ReportRepository(BaseRepo):
@@ -70,6 +71,16 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
         return reports
+    
+
+    @staticmethod
+    def update_summary(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        report.update({'summary': text_summarization_bert(report.first().information)})
+        db.commit()
+        return 'Updated summary successfully'
 
 
     @staticmethod
