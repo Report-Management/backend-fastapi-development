@@ -53,14 +53,14 @@ def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_low_priority_report(db)
 
 
-@router.put('/getSummary/{id}', summary=None, name='GET_SUMMARY', operation_id='get_summary')
-def update_summary(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.update_summary(id, db)
-
-
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
 def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))
+
+
+@router.put('/getSummary/{id}', summary=None, name='GET_SUMMARY', operation_id='get_summary')
+def update_summary(id: str, db: Session = Depends(get_db)):
+    return ReportRepository.update_summary(id, db)
 
 
 @router.put('/update/{id}', summary=None, name='UPDATE', operation_id='update_report')

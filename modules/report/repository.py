@@ -71,6 +71,17 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
         return reports
+
+
+    @staticmethod
+    def create(request: createReportModel, db: Session, USERid: UUID):
+        new_report = ReportEntity(
+            id=uuid.uuid4(),
+            category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=request.spam, userID=USERid)
+        db.add(new_report)
+        db.commit()
+        db.refresh(new_report)
+        return new_report
     
 
     @staticmethod
@@ -83,17 +94,6 @@ class ReportRepository(BaseRepo):
         report.update({'summary': text_summarization_bert(report.first().information)})
         db.commit()
         return report.first()
-
-
-    @staticmethod
-    def create(request: createReportModel, db: Session, USERid: UUID):
-        new_report = ReportEntity(
-            id=uuid.uuid4(),
-            category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=request.spam, userID=USERid)
-        db.add(new_report)
-        db.commit()
-        db.refresh(new_report)
-        return new_report
 
 
     @staticmethod
