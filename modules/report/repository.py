@@ -78,9 +78,11 @@ class ReportRepository(BaseRepo):
         report = db.query(ReportEntity).filter(ReportEntity.id == id)
         if not report.first():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+        elif report.first().summary != None:
+            return report.first()
         report.update({'summary': text_summarization_bert(report.first().information)})
         db.commit()
-        return 'Updated summary successfully'
+        return report.first()
 
 
     @staticmethod
