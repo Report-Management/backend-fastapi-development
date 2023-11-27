@@ -2,7 +2,7 @@ import jwt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 from typing import TypeVar, Generic, Optional
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import SECRET_KEY, ALGORITHM
@@ -41,6 +41,7 @@ class JWTRepo:
     @staticmethod
     def generate_token(data: dict):
         to_encode = data.copy()
+        to_encode["aud"] = "authenticated"
         encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encode_jwt
 
@@ -52,7 +53,7 @@ class JWTRepo:
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=403, detail="Token expired.")
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=403, detail="Invalid token.")
+            raise HTTPException(status_code=403, detail="Forbidden.")
         except Exception as e:
             return {}
 
@@ -64,7 +65,6 @@ class JWTRepo:
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
-        JWTBearer.__name__ = "Bearer"
         super(JWTBearer, self).__init__(auto_error=auto_error)
     async def __call__(self, request: Request):
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
@@ -91,3 +91,21 @@ class JWTBearer(HTTPBearer):
         if payload:
             isTokenValid = True
         return isTokenValid
+
+
+class AdminDepends:
+    def __init__(self):
+        self.check_admin()
+
+    @staticmethod
+    def check_admin(_token: str = Depends(JWTBearer())):
+        _user_id = JWTRepo.decode_token(_token.replace("Bearer ", ""))
+        _user_id = uuid.UUID(_user_id)
+        _user = UserRepository.get_by_id(db, UserEntity, _user_id)
+
+        if _user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        if _user.role != 'Admin':
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+        return _user
+

@@ -1,37 +1,42 @@
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+import uuid
 from fastapi import APIRouter, Depends, HTTPException, status
 from core import get_db, JWTRepo, TokenResponse, ResponseSchema, JWTBearer, SupabaseService
 from modules.users import UserModel, UserLoginModel, UserEntity, UserRepository
 from .repository import AuthRepository
+from .model import AccountType
 
 router = APIRouter(
-    prefix="/Authentications",
+    prefix="/authentications",
     tags=["Authentications"],
     responses={422: {"description": "Validation Error"}},
 )
 
-@router.post('/login', summary=None, name='POST', operation_id='login', response_model=ResponseSchema)
-def login(request: UserLoginModel, db: Session = Depends(get_db)):
+@router.post(
+    path='/login',
+    summary="Login",
+    response_model=ResponseSchema,
+    response_model_exclude_none=True,
+    description="Login to get access token."
+)
+def login(request: UserLoginModel, db: Session = Depends(get_db)) -> ResponseSchema:
     try:
         _user = AuthRepository.find_by_email(db, UserEntity, request.email)
-
         if _user is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
         if not pwd_context.verify(request.password, _user.password):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect password")
 
-        _token = JWTRepo.generate_token({"id": str(_user.id)})
+        _token = JWTRepo.generate_token({"sub": str(_user.id)})
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
             result={
-                "token": _token,
-                "token_type": "bearer"
+                "access_token": _token,
+                "type": "bearer"
             }
         )
 
@@ -40,44 +45,52 @@ def login(request: UserLoginModel, db: Session = Depends(get_db)):
         raise http_error
 
     except Exception as error:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to login.")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.post('/create', summary=None, name='POST', operation_id='create', dependencies=[Depends(JWTBearer())])
-def create(request: UserModel, db: Session = Depends(get_db), _token: str = Depends(JWTBearer())):
+@router.post(
+        path='/create',
+        summary="Create User",
+        dependencies=[Depends(JWTBearer())],
+        response_model=ResponseSchema,
+        response_model_exclude_none=True,
+        description="Admin create user account."
+)
+def create(body: UserModel, db: Session = Depends(get_db), _token: str = Depends(JWTBearer())):
     try:
         _userId = JWTRepo.decode_token(_token)
+        _userId = uuid.UUID(_userId)
         _user = UserRepository.get_by_id(db, UserEntity, _userId)
-        print(_user.role)
+
         if _user is None:
-            return HTTPException(status_code=404, detail="Email not found")
+            raise HTTPException(status_code=404, detail="Email not found")
         if _user.role != 'Admin':
-            return HTTPException(status_code=403, detail="Forbidden")
+            raise HTTPException(status_code=403, detail="Forbidden")
+        if (body.role is None) or (body.role == "") or (body.role not in [role.value for role in AccountType]):
+            raise HTTPException(status_code=422, detail="Invalid role")
 
         res = SupabaseService().supabase.auth.sign_up({
-            "email": request.email,
-            "password": request.password,
+            "email": body.email,
+            "password": body.password,
             "options": {
                 "data": {
-                    "username": request.username,
-                    "email": request.email,
+                    "username": body.username,
+                    "email": body.email,
                 }
             }
         })
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         _account = UserEntity(
             id=uuid.UUID(res.user.id),
-            username=request.username,
-            email=request.email,
-            password=pwd_context.hash(request.password),
-            role=request.role,
+            username=body.username,
+            email=body.email,
+            password=pwd_context.hash(body.password),
+            role=body.role,
         )
         UserRepository.insert(db, _account)
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
-            result={
-                "message": "Account created successfully."
-            }
+            message="User created successfully."
         )
 
     except HTTPException as http_error:
@@ -86,11 +99,17 @@ def create(request: UserModel, db: Session = Depends(get_db), _token: str = Depe
         print(error.args)
         raise HTTPException(status_code=500, detail="Internal server error.")
 
-@router.get('/check', summary=None, name='GET', operation_id='check_role')
-async def check(id: str, db: Session = Depends(get_db)):
+@router.get(
+    path='/check/{id}',
+    summary="Check Role",
+    name='GET',
+    response_model=ResponseSchema,
+    response_model_exclude_none=True,
+    description="Check user role. Admin or User."
+)
+async def check(id: str, db: Session = Depends(get_db)) -> ResponseSchema:
     try:
         _user = UserRepository.get_by_id(db, UserEntity, id)
-        print(_user.role)
         if _user is None:
             raise HTTPException(status_code=404, detail="User not found")
 
