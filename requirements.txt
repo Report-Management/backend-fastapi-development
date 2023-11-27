@@ -11,3 +11,8 @@ PyJWT
 python-jose
 bcrypt
 cryptography
+supabase
+jwt
+asyncio
+gunicorn
+bert-extractive-summarizer
