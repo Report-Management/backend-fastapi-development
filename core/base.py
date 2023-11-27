@@ -91,21 +91,3 @@ class JWTBearer(HTTPBearer):
         if payload:
             isTokenValid = True
         return isTokenValid
-
-
-class AdminDepends:
-    def __init__(self):
-        self.check_admin()
-
-    @staticmethod
-    def check_admin(_token: str = Depends(JWTBearer())):
-        _user_id = JWTRepo.decode_token(_token.replace("Bearer ", ""))
-        _user_id = uuid.UUID(_user_id)
-        _user = UserRepository.get_by_id(db, UserEntity, _user_id)
-
-        if _user is None:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-        if _user.role != 'Admin':
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
-        return _user
-
