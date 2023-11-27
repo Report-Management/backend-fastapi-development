@@ -1,11 +1,10 @@
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo
 from .entity import UserEntity
 from .repositorys import UserRepository
 from .model import UserModel
-import json
 
 router = APIRouter(
     prefix="/users",
