@@ -1,6 +1,6 @@
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status, HTTPException
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo
 from .entity import UserEntity
 from .repositorys import UserRepository
@@ -13,7 +13,7 @@ router = APIRouter(
 )
 
 @router.get(
-    path="/users",
+    path="/all_user",
     dependencies=[Depends(JWTBearer())],
     summary="Get all users.",
     response_model=ResponseSchema,
@@ -57,20 +57,24 @@ async def get_user(db: Session = Depends(get_db), _token: str = Depends(JWTBeare
         summary="Get User Info by Token",
 )
 async def get_user_by_token(_token: str = Depends(JWTBearer()), db: Session = Depends(get_db)) -> ResponseSchema:
-    _user_id = JWTRepo.decode_token(_token.replace("Bearer ", ""))
-    # _user_id = uuid.UUID(_user_id)
-    _user = UserRepository.get_by_id(db, UserEntity, _user_id)
-    if _user is None:
-        raise HTTPException(status_code=404, detail="User not found.")
-    _user = {
-        "id": str(_user.id),
-        "username": _user.username,
-        "email": _user.email,
-        "role": _user.role,
-        "profilePhoto": _user.profilePhoto
-    }
-    return ResponseSchema(
-        code=status.HTTP_200_OK,
-        status="S",
-        result=_user
-    )
+    try:
+        _user_id = JWTRepo.decode_token(_token.replace("Bearer ", ""))
+        _user = UserRepository.get_by_id(db, UserEntity, _user_id)
+        if _user is None:
+            raise HTTPException(status_code=404, detail="User not found.")
+        _user = {
+            "id": str(_user.id),
+            "username": _user.username,
+            "email": _user.email,
+            "role": _user.role,
+            "profilePhoto": _user.profilePhoto
+        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result=_user
+        )
+    except HTTPException as http_error:
+        raise http_error
+    except Exception as error:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")

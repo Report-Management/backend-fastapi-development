@@ -15,4 +15,5 @@ supabase
 jwt
 asyncio
 gunicorn
+torch
 bert-extractive-summarizer

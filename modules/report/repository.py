@@ -9,8 +9,6 @@ from .summarize import text_summarization_bert
 import uuid
 
 class ReportRepository(BaseRepo):
-
-
     @staticmethod
     def get_all_reports(db: Session):
         reports = db.query(ReportEntity).all()
