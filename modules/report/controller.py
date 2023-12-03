@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status
-from core import get_db, ResponseSchema, JWTBearer, JWTRepo
+from fastapi import APIRouter, Depends, status, UploadFile, File
+from core import get_db, ResponseSchema, JWTBearer, JWTRepo, SupabaseService
 from .model import *
 from .repository import ReportRepository
 from sqlalchemy import UUID
@@ -56,6 +56,12 @@ def get_my_report(db: Session = Depends(get_db)):
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
 def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))
+
+
+@router.post('/uploadFile/{id}', summary=None, name="UPLOAD_FILE", operation_id="upload_file")
+def upload_file(id, file: UploadFile):
+    bucket = 'testbucket'
+    return SupabaseService.upload_image(bucket, file, id)
 
 
 @router.put('/getSummary/{id}', summary=None, name='GET_SUMMARY', operation_id='get_summary')
@@ -116,6 +122,13 @@ def mark_spam(id: str, db: Session = Depends(get_db)):
 @router.put('/unmarkSpam', summary=None, name='UNMARK_SPAM', operation_id='unmark_spam_report')
 def unmark_spam(id: str, db: Session = Depends(get_db)):
     return ReportRepository.unmark_spam(id, db)
+
+
+@router.put('/updateFile/{id}', summary=None, name="UPDATE_FILE", operation_id="UPDATE_file")
+def upload_file(id, file: UploadFile):
+    bucket = 'testbucket'
+    SupabaseService.delete_image(bucket, id)
+    return SupabaseService.upload_image(bucket, file, id)
 
 
 @router.delete('/delete/{id}', summary=None, name='DELETE', operation_id='delete_report')

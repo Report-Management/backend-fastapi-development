@@ -28,3 +28,18 @@ class SupabaseService:
             image_url = SupabaseService().supabase.storage.from_(bucket).get_public_url(file_name)
             return image_url.removesuffix('?')
         return None
+    
+
+    @staticmethod
+    def delete_image(bucket: str, report_id: str) -> bool:
+        if bucket is None:
+            bucket = SupabaseService().__storage_bucket
+
+        file_name = f"{report_id}.png"
+
+        response = SupabaseService().supabase.storage.from_(bucket).remove(file_name)
+
+        # if response['data'] is None:
+        #     return True
+        # else:
+        #     return False
