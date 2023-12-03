@@ -6,7 +6,6 @@ class createReportModel(BaseModel):
     header: str
     information: str
     view: str
-    spam: bool
 
 
 class updateReportModel(BaseModel):

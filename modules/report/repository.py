@@ -6,6 +6,7 @@ from .model import *
 from fastapi import HTTPException, status
 from sqlalchemy import UUID
 from .summarize import text_summarization_bert
+from .spam_detection import spam_or_ham
 import uuid
 
 class ReportRepository(BaseRepo):
@@ -77,7 +78,7 @@ class ReportRepository(BaseRepo):
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(
             id=uuid.uuid4(),
-            category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=request.spam, userID=USERid)
+            category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=spam_or_ham(request.information), userID=USERid)
         db.add(new_report)
         db.commit()
         db.refresh(new_report)
