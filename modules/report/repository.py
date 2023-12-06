@@ -80,7 +80,7 @@ class ReportRepository(BaseRepo):
                                                  )&(ReportEntity.approval == True)).all()
         # reports = reports.filter(ReportEntity.approval == True)
         if not reports:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no this search result")
+            return None
         return reports
 
 
