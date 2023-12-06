@@ -80,19 +80,33 @@ def create(
         id: UUID = Depends(JWTBearer())):
     
     REPORTid = uuid.uuid4()
-    
+
     if file:
         bucket = 'testbucket'
-        SupabaseService.upload_image(bucket, file, str(REPORTid))
+        SupabaseService.upload_image(bucket, file, REPORTid)
+        fileName = str(REPORTid)
+
+        request = createReportWithFileModel(
+            id=str(REPORTid),
+            category=category,
+            priority=priority.value,
+            header=header,
+            information=information,
+            photo=fileName,
+            view=view
+        )
+        return ReportRepository.create(request, db, JWTRepo.decode_token(id))
+    
 
     request = createReportModel(
-        category=category,
-        priority=priority.value,
-        header=header,
-        information=information,
-        view=view
-    )
-    return ReportRepository.create(request, db, REPORTid, JWTRepo.decode_token(id))
+            id=str(REPORTid),
+            category=category,
+            priority=priority.value,
+            header=header,
+            information=information,
+            view=view
+        )
+    return ReportRepository.create(request, db, JWTRepo.decode_token(id))
 
 
 @router.post('/uploadFile/{id}', summary=None, name="UPLOAD_FILE", operation_id="upload_file")

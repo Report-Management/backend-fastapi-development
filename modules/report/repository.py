@@ -88,10 +88,21 @@ class ReportRepository(BaseRepo):
 
 
     @staticmethod
-    def create(request: createReportModel, db: Session, REPORTid: UUID, USERid: UUID):
+    def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(
-            id=REPORTid,
+            id=request.id,
             category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=spam_or_ham(request.information), userID=USERid)
+        db.add(new_report)
+        db.commit()
+        db.refresh(new_report)
+        return new_report
+    
+
+    @staticmethod
+    def createWithFile(request: createReportWithFileModel, db: Session, USERid: UUID):
+        new_report = ReportEntity(
+            id=request.id,
+            category=request.category, priority=request.priority, header=request.header, information=request.information, photo=request.photo, view=request.view, spam=spam_or_ham(request.information), userID=USERid)
         db.add(new_report)
         db.commit()
         db.refresh(new_report)

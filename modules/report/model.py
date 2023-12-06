@@ -8,10 +8,21 @@ class PriorityEnum(Enum):
 
 
 class createReportModel(BaseModel):
+    id: str
     category: str
     priority: str
     header: str
     information: str
+    view: str
+
+
+class createReportWithFileModel(BaseModel):
+    id: str
+    category: str
+    priority: str
+    header: str
+    information: str
+    photo: str
     view: str
 
 
