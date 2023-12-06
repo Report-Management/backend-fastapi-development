@@ -17,6 +17,10 @@ class ReportRepository(BaseRepo):
         reports = db.query(ReportEntity).all()
         return reports
 
+    @staticmethod
+    def get_all_approve_reports(db: Session):
+        reports = db.query(ReportEntity).filter(ReportEntity.approval == True).all()
+        return reports
 
     @staticmethod
     def get_report(id: str, db: Session):
@@ -71,6 +75,15 @@ class ReportRepository(BaseRepo):
         reports = db.query(ReportEntity).filter(and_(ReportEntity.priority == 'Low', ReportEntity.spam == False)).all()
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
+        return reports
+    
+    @staticmethod
+    def search_report(search:str,db: Session):
+        reports = db.query(ReportEntity).filter((ReportEntity.header.like(f"%{search}%") | ReportEntity.information.like(f"%{search}%")
+                                                 )&(ReportEntity.approval == True)).all()
+        # reports = reports.filter(ReportEntity.approval == True)
+        if not reports:
+            return None
         return reports
 
 

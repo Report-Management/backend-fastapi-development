@@ -17,6 +17,10 @@ router = APIRouter(
 def get_all_reports(db: Session = Depends(get_db)):
     return ReportRepository.get_all_reports(db)
 
+@router.get('/show/approve', summary=None, name='SHOW_ALL_APPROVE', operation_id='get_all_approve_reports')
+def get_all_approve_reports(db: Session = Depends(get_db)):
+    return ReportRepository.get_all_approve_reports(db)
+
 
 @router.get('/show/{id}', summary=None, name='SHOW', operation_id='get_report')
 def get_report(id: str, db: Session = Depends(get_db)):
@@ -51,6 +55,10 @@ def get_my_report(db: Session = Depends(get_db)):
 @router.get('/showLowPriorityReport', summary=None, name='SHOW_LOW_PRIORITY_REPORT', operation_id='get_low_priority_report')
 def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_low_priority_report(db)
+
+@router.get('/search', summary=None, name='SEARCH_REPORT', operation_id='search_report')
+def search_report(search:str, db: Session = Depends(get_db)):
+    return ReportRepository.search_report(search,db)
 
 
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
