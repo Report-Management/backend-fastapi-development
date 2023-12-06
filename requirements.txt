@@ -5,4 +5,15 @@ psycopg2-binary
 passlib
 python-jose
 python-multipart
+gunicorn
+supabase
+PyJWT
+python-jose
+bcrypt
+cryptography
+supabase
 jwt
+asyncio
+gunicorn
+torch
+bert-extractive-summarizer

@@ -2,7 +2,7 @@ import jwt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 from typing import TypeVar, Generic, Optional
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import SECRET_KEY, ALGORITHM
@@ -39,25 +39,21 @@ class BaseRepo:
 class JWTRepo:
 
     @staticmethod
-    def generate_token(data: dict, expires_delta: Optional[timedelta] = None):
+    def generate_token(data: dict):
         to_encode = data.copy()
-        if expires_delta:
-            expire = datetime.utcnow() + expires_delta
-        else:
-            expire = datetime.utcnow() + timedelta(minutes=15)
-        to_encode.update({"exp": expire})
+        to_encode["aud"] = "authenticated"
         encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
         return encode_jwt
 
     @staticmethod
     def decode_token(token: str):
         try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            return payload.get("id")
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], audience="authenticated")
+            return payload.get('sub')
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=403, detail="Token expired.")
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=403, detail="Invalid token.")
+            raise HTTPException(status_code=403, detail="Forbidden.")
         except Exception as e:
             return {}
 
@@ -69,7 +65,6 @@ class JWTRepo:
 
 class JWTBearer(HTTPBearer):
     def __init__(self, auto_error: bool = True):
-        JWTBearer.__name__ = "Bearer"
         super(JWTBearer, self).__init__(auto_error=auto_error)
     async def __call__(self, request: Request):
         credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
@@ -89,7 +84,7 @@ class JWTBearer(HTTPBearer):
     def verify_jwt(jwt_token: str):
         isTokenValid: bool = False
         try:
-            payload = jwt.decode(jwt_token, SECRET_KEY, algorithm=[ALGORITHM])
+            payload = jwt.decode(jwt_token, SECRET_KEY, algorithm=[ALGORITHM], audience="authenticated")
         except:
             payload = None
 
