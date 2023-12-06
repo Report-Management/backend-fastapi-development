@@ -70,7 +70,15 @@ class ReportRepository(BaseRepo):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
         return reports
 
-
+    @staticmethod
+    def search_report(search:str,db: Session):
+        reports = db.query(ReportEntity).filter((ReportEntity.header.like(f"%{search}%") | ReportEntity.information.like(f"%{search}%")
+                                                 )&(ReportEntity.approval == True)).all()
+        # reports = reports.filter(ReportEntity.approval == True)
+        if not reports:
+            return None
+        return reports
+    
     @staticmethod
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(

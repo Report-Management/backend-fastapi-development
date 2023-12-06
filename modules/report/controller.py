@@ -52,6 +52,9 @@ def get_my_report(db: Session = Depends(get_db)):
 def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_low_priority_report(db)
 
+@router.get('/search', summary=None, name='SEARCH_REPORT', operation_id='search_report')
+def search_report(search:str, db: Session = Depends(get_db)):
+    return ReportRepository.search_report(search,db)
 
 @router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
 def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
