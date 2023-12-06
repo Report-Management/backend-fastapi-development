@@ -83,11 +83,11 @@ def create(
     
     if file:
         bucket = 'testbucket'
-        SupabaseService.upload_image(bucket, file, REPORTid)
+        SupabaseService.upload_image(bucket, file, str(REPORTid))
 
     request = createReportModel(
         category=category,
-        priority=priority,
+        priority=priority.value,
         header=header,
         information=information,
         view=view

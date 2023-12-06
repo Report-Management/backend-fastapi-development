@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import Enum
+from enum import Enum
 
 class PriorityEnum(Enum):
     Low = 'Low'
