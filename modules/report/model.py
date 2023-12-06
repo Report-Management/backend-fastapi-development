@@ -8,6 +8,7 @@ class PriorityEnum(Enum):
 
 
 class createReportModel(BaseModel):
+    id: str
     category: str
     priority: str
     header: str

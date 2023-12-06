@@ -71,11 +71,14 @@ def create(
         db: Session = Depends(get_db),
         id: UUID = Depends(JWTBearer())):
     
+    REPORTid = uuid.uuid4()
+
     if file:
         bucket = 'testbucket'
-        SupabaseService.upload_image(bucket, file, 'testing1')
+        SupabaseService.upload_image(bucket, file, REPORTid)
 
     request = createReportModel(
+        id=str(REPORTid),
         category=category,
         priority=priority.value,
         header=header,

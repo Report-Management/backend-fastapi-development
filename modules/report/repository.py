@@ -77,7 +77,7 @@ class ReportRepository(BaseRepo):
     @staticmethod
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(
-            id=uuid.uuid4(),
+            id=request.id,
             category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=spam_or_ham(request.information), userID=USERid)
         db.add(new_report)
         db.commit()
