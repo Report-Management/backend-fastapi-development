@@ -1,4 +1,11 @@
 from pydantic import BaseModel
+from enum import Enum
+
+class PriorityEnum(Enum):
+    Low = 'Low'
+    Medium = 'Medium'
+    High = 'High'
+
 
 class createReportModel(BaseModel):
     category: str

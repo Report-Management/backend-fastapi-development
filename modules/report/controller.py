@@ -1,6 +1,7 @@
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status, UploadFile, File
+from fastapi import APIRouter, Depends, status, UploadFile, File, Form
+from typing import Annotated
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo, SupabaseService
 from .model import *
 from .repository import ReportRepository
@@ -53,8 +54,30 @@ def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_low_priority_report(db)
 
 
-@router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
-def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
+@router.post(
+    path='/create',
+    summary=None,
+    name='POST',
+    operation_id='create_report',
+    dependencies=[Depends(JWTBearer())]
+)
+def create(
+        category: Annotated[str, Form()],
+        priority: Annotated[PriorityEnum, Form()],
+        header: Annotated[str, Form()],
+        information: Annotated[str, Form()],
+        view: Annotated[str, Form()],
+        file: UploadFile = File(None),
+        db: Session = Depends(get_db),
+        id: UUID = Depends(JWTBearer())):
+
+    request = createReportModel(
+        category=category,
+        priority=priority,
+        header=header,
+        information=information,
+        view=view
+    )
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))
 
 
