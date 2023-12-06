@@ -1,4 +1,11 @@
 from pydantic import BaseModel
+from sqlalchemy import Enum
+
+class PriorityEnum(Enum):
+    Low = 'Low'
+    Medium = 'Medium'
+    High = 'High'
+
 
 class createReportModel(BaseModel):
     category: str
