@@ -1,5 +1,5 @@
 from core import BaseRepo
-from sqlalchemy import and_
+from sqlalchemy import and_, cast, Date
 from sqlalchemy.orm import Session
 from .entity import ReportEntity
 from .model import *
@@ -8,15 +8,55 @@ from sqlalchemy import UUID
 from .summarize import text_summarization_bert
 from .spam_detection import spam_or_ham
 import uuid
+from datetime import datetime, timedelta
 
 class ReportRepository(BaseRepo):
 
-
     @staticmethod
-    def get_all_reports(db: Session):
-        reports = db.query(ReportEntity).all()
+    def get_all_reports(db: Session, filters: dict):
+        query = db.query(ReportEntity)
+        for key, value in filters.items():
+            if key == FilterEnum.Type:
+                if value == TypeEnum.Approved:
+                    is_approval = True
+                elif value == TypeEnum.NotApproved:
+                    is_approval = False
+                query = query.filter(ReportEntity.approval == is_approval)
+            elif key == FilterEnum.Priority:
+                priority = value.value
+                query = query.filter(ReportEntity.priority == priority)
+            elif key == FilterEnum.Category:
+                category = value.value
+                query = query.filter(ReportEntity.category == category)
+            elif key == FilterEnum.Date:
+                if value == DateEnum.Today:
+                    today_date = datetime.now().strftime("%Y-%m-%d")
+                    query = query.filter(ReportEntity.reportedTime == today_date)
+                elif value == DateEnum.Yesterday:
+                    yesterday = datetime.now() - timedelta(days=1)
+                    query = query.filter(ReportEntity.reportedTime == yesterday)
+                elif value == DateEnum.LastMonth:
+                    today = datetime.now()
+                    last_month_start = datetime(today.year, today.month - 1, 1)
+                    last_month_end = datetime(today.year, today.month, 1) - timedelta(days=1)
+                    query = query.filter(
+                        and_(
+                            ReportEntity.reportedTime >= last_month_start,
+                            ReportEntity.reportedTime <= last_month_end
+                        )
+                    )
+                elif value == DateEnum.LastYear:
+                    today = datetime.now()
+                    last_year_start = datetime(today.year - 1, 1, 1)
+                    last_year_end = datetime(today.year - 1, 12, 31)
+                    query = query.filter(
+                        and_(
+                            ReportEntity.reportedTime >= last_year_start,
+                            ReportEntity.reportedTime <= last_year_end
+                        )
+                    )
+            reports = query.all()
         return reports
-
 
     @staticmethod
     def get_report(id: str, db: Session):
@@ -24,7 +64,7 @@ class ReportRepository(BaseRepo):
         if not report:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Report with the {id} is not available")
         return report
-    
+
 
     @staticmethod
     def get_my_report(USERid: UUID, db: Session):
@@ -32,7 +72,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Report with the USER {USERid} is not available")
         return reports
-    
+
 
     @staticmethod
     def get_completed_report(db: Session):
@@ -40,7 +80,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no completed reports")
         return reports
-    
+
 
     @staticmethod
     def get_spam_report(db: Session):
@@ -48,7 +88,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no spam reports")
         return reports
-    
+
 
     @staticmethod
     def get_high_priority_report(db: Session):
@@ -56,7 +96,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no high priority reports")
         return reports
-    
+
 
     @staticmethod
     def get_medium_priority_report(db: Session):
@@ -64,7 +104,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no medium priority reports")
         return reports
-    
+
 
     @staticmethod
     def get_low_priority_report(db: Session):
@@ -83,7 +123,7 @@ class ReportRepository(BaseRepo):
         db.commit()
         db.refresh(new_report)
         return new_report
-    
+
 
     @staticmethod
     def update_summary(id: UUID, db: Session):
@@ -105,7 +145,7 @@ class ReportRepository(BaseRepo):
         report.update({'category':request.category, 'priority':request.priority, 'header':request.header, 'information':request.information, 'view':request.view})
         db.commit()
         return 'Updated successfully'
-    
+
 
     @staticmethod
     def update_category(id: UUID, request: updateCategoryModel, db: Session):
@@ -115,7 +155,7 @@ class ReportRepository(BaseRepo):
         report.update({'category': request.category})
         db.commit()
         return 'Updated category successfully'
-    
+
 
     @staticmethod
     def update_priority(id: UUID, request: updatePriorityModel, db: Session):
@@ -125,7 +165,7 @@ class ReportRepository(BaseRepo):
         report.update({'category': request.priority})
         db.commit()
         return 'Updated category successfully'
-    
+
 
     @staticmethod
     def update_header(id: UUID, request: updateHeaderModel, db: Session):
@@ -145,7 +185,7 @@ class ReportRepository(BaseRepo):
         report.update({'category': request.information})
         db.commit()
         return 'Updated information successfully'
-    
+
 
     @staticmethod
     def update_view(id: UUID, request: updateViewModel, db: Session):
@@ -165,7 +205,7 @@ class ReportRepository(BaseRepo):
         report.update({'completed': True})
         db.commit()
         return 'Mark completed successfully'
-    
+
 
     @staticmethod
     def unmark_completed(id: UUID, db: Session):
@@ -175,7 +215,7 @@ class ReportRepository(BaseRepo):
         report.update({'completed': False})
         db.commit()
         return 'Unmark completed successfully'
-    
+
 
     @staticmethod
     def mark_aprroved(id: UUID, db: Session):
@@ -185,7 +225,7 @@ class ReportRepository(BaseRepo):
         report.update({'approval': True})
         db.commit()
         return 'Mark approved successfully'
-    
+
 
     @staticmethod
     def unmark_aprroved(id: UUID, db: Session):
@@ -195,7 +235,7 @@ class ReportRepository(BaseRepo):
         report.update({'approval': False})
         db.commit()
         return 'Unmark approved successfully'
-    
+
 
     @staticmethod
     def mark_spam(id: UUID, db: Session):
@@ -205,7 +245,7 @@ class ReportRepository(BaseRepo):
         report.update({'spam': True})
         db.commit()
         return 'Mark spam successfully'
-    
+
 
     @staticmethod
     def unmark_spam(id: UUID, db: Session):

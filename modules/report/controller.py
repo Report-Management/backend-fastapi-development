@@ -1,22 +1,41 @@
 import uuid
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, status, UploadFile, File, Form
-from typing import Annotated
+from typing import Annotated, Dict, TypeVar
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo, SupabaseService
 from .model import *
 from .repository import ReportRepository
 from sqlalchemy import UUID
-
+from datetime import datetime, timedelta
+T = TypeVar('T')
 router = APIRouter(
     prefix="/Report",
     tags=['Reports'],
     responses={422: {"description": "Validation Error"}},
 )
-
-
-@router.get('/show', summary=None, name='SHOW_ALL', operation_id='get_all_reports')
-def get_all_reports(db: Session = Depends(get_db)):
-    return ReportRepository.get_all_reports(db)
+@router.get(
+    path='/show',
+    summary=None,
+    name='SHOW_ALL',
+    operation_id='get_all_reports',
+)
+def get_all_reports(
+        approval: TypeEnum = None,
+        priority: PriorityEnum = None,
+        category: CategoryEnum = None,
+        date: DateEnum = None,
+        db: Session = Depends(get_db),
+):
+    filters: Dict[FilterEnum, T] = {}
+    if approval:
+        filters[FilterEnum.Type] = approval
+    if priority:
+        filters[FilterEnum.Priority] = priority
+    if category:
+        filters[FilterEnum.Category] = category
+    if date:
+        filters[FilterEnum.Date] = date
+    return ReportRepository.get_all_reports(db, filters)
 
 
 @router.get('/show/{id}', summary=None, name='SHOW', operation_id='get_report')
@@ -69,14 +88,20 @@ def create(
         view: Annotated[str, Form()],
         file: UploadFile = File(None),
         db: Session = Depends(get_db),
-        id: UUID = Depends(JWTBearer())):
+        token: UUID = Depends(JWTBearer())):
+
+    if file:
+        bucket = 'testbucket'
+        photo = SupabaseService.upload_image(bucket, file, id)
 
     request = createReportModel(
         category=category,
-        priority=priority,
+        priority=priority.value,
         header=header,
         information=information,
-        view=view
+        view=view,
+        photo=photo
+
     )
     return ReportRepository.create(request, db, JWTRepo.decode_token(id))
 

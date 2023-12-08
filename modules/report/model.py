@@ -1,11 +1,36 @@
 from pydantic import BaseModel
 from enum import Enum
 
+class FilterEnum(Enum):
+    Type = "type"
+    Priority = "priority"
+    Category = "category"
+    Date = "date"
+
 class PriorityEnum(Enum):
     Low = 'Low'
     Medium = 'Medium'
     High = 'High'
 
+class CategoryEnum(Enum):
+    FacilityAndEnv = 'FacilityAndEnv'
+    AdminstrativeAndStuffs = 'AdminstrativeAndStuffs'
+    HealthAndSafety = 'HealthAndSafety'
+    BehavioralIssues = 'BehavioralIssues'
+    Academic = 'Academic'
+    Community = 'Community'
+    SpecialRequest = 'SpecialRequest'
+    Other = 'Other'
+
+class DateEnum(Enum):
+    Today = 'today'
+    Yesterday = 'yesterday'
+    LastMonth = 'lastmonth'
+    LastYear = 'lastyear'
+
+class TypeEnum(Enum):
+    Approved = 'approved'
+    NotApproved = 'notapproved'
 
 class createReportModel(BaseModel):
     category: str
@@ -13,6 +38,7 @@ class createReportModel(BaseModel):
     header: str
     information: str
     view: str
+    photo: str
 
 
 class updateReportModel(BaseModel):
