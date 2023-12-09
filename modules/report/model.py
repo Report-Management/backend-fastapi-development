@@ -31,14 +31,31 @@ class DateEnum(Enum):
 class TypeEnum(Enum):
     Approved = 'approved'
     NotApproved = 'notapproved'
+from enum import Enum
+
+class PriorityEnum(Enum):
+    Low = 'Low'
+    Medium = 'Medium'
+    High = 'High'
+
 
 class createReportModel(BaseModel):
+    id: str
     category: str
     priority: str
     header: str
     information: str
     view: str
+
+
+class createReportWithFileModel(BaseModel):
+    id: str
+    category: str
+    priority: str
+    header: str
+    information: str
     photo: str
+    view: str
 
 
 class updateReportModel(BaseModel):

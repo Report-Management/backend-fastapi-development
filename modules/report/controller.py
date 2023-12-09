@@ -1,7 +1,6 @@
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status, UploadFile, File, Form
-from typing import Annotated, Dict, TypeVar
+from fastapi import APIRouter, Depends, status, UploadFile, File
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo, SupabaseService
 from .model import *
 from .repository import ReportRepository
@@ -36,6 +35,10 @@ def get_all_reports(
     if date:
         filters[FilterEnum.Date] = date
     return ReportRepository.get_all_reports(db, filters)
+
+@router.get('/show/approve', summary=None, name='SHOW_ALL_APPROVE', operation_id='get_all_approve_reports')
+def get_all_approve_reports(db: Session = Depends(get_db)):
+    return ReportRepository.get_all_approve_reports(db)
 
 
 @router.get('/show/{id}', summary=None, name='SHOW', operation_id='get_report')
@@ -72,6 +75,34 @@ def get_my_report(db: Session = Depends(get_db)):
 def get_my_report(db: Session = Depends(get_db)):
     return ReportRepository.get_low_priority_report(db)
 
+@router.get('/search', summary=None, name='SEARCH_REPORT', operation_id='search_report')
+def search_report(search:str, db: Session = Depends(get_db)):
+    return ReportRepository.search_report(search,db)
+
+
+@router.post(
+    path='/create',
+    summary=None,
+    name='POST',
+    operation_id='create_report',
+    dependencies=[Depends(JWTBearer())]
+)
+def create(
+        category: Annotated[str, Form()],
+        priority: Annotated[PriorityEnum, Form()],
+        header: Annotated[str, Form()],
+        information: Annotated[str, Form()],
+        view: Annotated[str, Form()],
+        file: UploadFile = File(None),
+        db: Session = Depends(get_db),
+        id: UUID = Depends(JWTBearer())):
+
+    REPORTid = uuid.uuid4()
+
+    if file:
+        bucket = 'testbucket'
+        SupabaseService.upload_image(bucket, file, REPORTid)
+        fileName = str(REPORTid)
 
 @router.post(
     path='/create',

@@ -1,5 +1,5 @@
 from core import BaseRepo
-from sqlalchemy import and_, cast, Date
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from .entity import ReportEntity
 from .model import *
@@ -8,9 +8,9 @@ from sqlalchemy import UUID
 from .summarize import text_summarization_bert
 from .spam_detection import spam_or_ham
 import uuid
-from datetime import datetime, timedelta
 
 class ReportRepository(BaseRepo):
+
 
     @staticmethod
     def get_all_reports(db: Session, filters: dict):
@@ -58,13 +58,14 @@ class ReportRepository(BaseRepo):
             reports = query.all()
         return reports
 
+
     @staticmethod
     def get_report(id: str, db: Session):
         report = db.query(ReportEntity).filter(ReportEntity.id == id).first()
         if not report:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Report with the {id} is not available")
         return report
-
+    
 
     @staticmethod
     def get_my_report(USERid: UUID, db: Session):
@@ -72,7 +73,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Report with the USER {USERid} is not available")
         return reports
-
+    
 
     @staticmethod
     def get_completed_report(db: Session):
@@ -80,7 +81,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no completed reports")
         return reports
-
+    
 
     @staticmethod
     def get_spam_report(db: Session):
@@ -88,7 +89,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no spam reports")
         return reports
-
+    
 
     @staticmethod
     def get_high_priority_report(db: Session):
@@ -96,7 +97,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no high priority reports")
         return reports
-
+    
 
     @staticmethod
     def get_medium_priority_report(db: Session):
@@ -104,7 +105,7 @@ class ReportRepository(BaseRepo):
         if not reports:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no medium priority reports")
         return reports
-
+    
 
     @staticmethod
     def get_low_priority_report(db: Session):
@@ -113,12 +114,32 @@ class ReportRepository(BaseRepo):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"There is no low priority reports")
         return reports
 
+    @staticmethod
+    def search_report(search:str,db: Session):
+        reports = db.query(ReportEntity).filter((ReportEntity.header.like(f"%{search}%") | ReportEntity.information.like(f"%{search}%")
+                                                 )&(ReportEntity.approval == True)).all()
+        # reports = reports.filter(ReportEntity.approval == True)
+        if not reports:
+            return None
+        return reports
+
 
     @staticmethod
     def create(request: createReportModel, db: Session, USERid: UUID):
         new_report = ReportEntity(
-            id=uuid.uuid4(),
+            id=request.id,
             category=request.category, priority=request.priority, header=request.header, information=request.information, view=request.view, spam=spam_or_ham(request.information), userID=USERid)
+        db.add(new_report)
+        db.commit()
+        db.refresh(new_report)
+        return new_report
+
+
+    @staticmethod
+    def createWithFile(request: createReportWithFileModel, db: Session, USERid: UUID):
+        new_report = ReportEntity(
+            id=request.id,
+            category=request.category, priority=request.priority, header=request.header, information=request.information, photo=request.photo, view=request.view, spam=spam_or_ham(request.information), userID=USERid)
         db.add(new_report)
         db.commit()
         db.refresh(new_report)
@@ -145,7 +166,7 @@ class ReportRepository(BaseRepo):
         report.update({'category':request.category, 'priority':request.priority, 'header':request.header, 'information':request.information, 'view':request.view})
         db.commit()
         return 'Updated successfully'
-
+    
 
     @staticmethod
     def update_category(id: UUID, request: updateCategoryModel, db: Session):
@@ -155,7 +176,7 @@ class ReportRepository(BaseRepo):
         report.update({'category': request.category})
         db.commit()
         return 'Updated category successfully'
-
+    
 
     @staticmethod
     def update_priority(id: UUID, request: updatePriorityModel, db: Session):
@@ -165,7 +186,7 @@ class ReportRepository(BaseRepo):
         report.update({'category': request.priority})
         db.commit()
         return 'Updated category successfully'
-
+    
 
     @staticmethod
     def update_header(id: UUID, request: updateHeaderModel, db: Session):
@@ -185,7 +206,7 @@ class ReportRepository(BaseRepo):
         report.update({'category': request.information})
         db.commit()
         return 'Updated information successfully'
-
+    
 
     @staticmethod
     def update_view(id: UUID, request: updateViewModel, db: Session):
@@ -205,7 +226,7 @@ class ReportRepository(BaseRepo):
         report.update({'completed': True})
         db.commit()
         return 'Mark completed successfully'
-
+    
 
     @staticmethod
     def unmark_completed(id: UUID, db: Session):
@@ -215,7 +236,7 @@ class ReportRepository(BaseRepo):
         report.update({'completed': False})
         db.commit()
         return 'Unmark completed successfully'
-
+    
 
     @staticmethod
     def mark_aprroved(id: UUID, db: Session):
@@ -225,7 +246,7 @@ class ReportRepository(BaseRepo):
         report.update({'approval': True})
         db.commit()
         return 'Mark approved successfully'
-
+    
 
     @staticmethod
     def unmark_aprroved(id: UUID, db: Session):
@@ -235,7 +256,7 @@ class ReportRepository(BaseRepo):
         report.update({'approval': False})
         db.commit()
         return 'Unmark approved successfully'
-
+    
 
     @staticmethod
     def mark_spam(id: UUID, db: Session):
@@ -245,7 +266,7 @@ class ReportRepository(BaseRepo):
         report.update({'spam': True})
         db.commit()
         return 'Mark spam successfully'
-
+    
 
     @staticmethod
     def unmark_spam(id: UUID, db: Session):

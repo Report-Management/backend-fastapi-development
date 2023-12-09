@@ -16,3 +16,4 @@ asyncio
 gunicorn
 bert-extractive-summarizer
 pandas
+sklearn
