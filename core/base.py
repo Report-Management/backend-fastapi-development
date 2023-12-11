@@ -3,7 +3,7 @@ from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime
 from fastapi import Request, HTTPException, Depends
-from typing import TypeVar, Generic, Optional
+from typing import TypeVar, Generic, Optional, Dict
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import SECRET_KEY, ALGORITHM
 
