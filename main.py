@@ -7,14 +7,17 @@ from modules.auth.controller import router as auth_router
 from modules.users.controller import router as user_router
 from modules.report.controller import router as posts_router
 
-app = FastAPI()
+app = FastAPI(
+    docs_url="/",
+    title="Report Management",
+)
 
 def custom_swagger():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = openapi.get_openapi(
-        title="FAST-API",
-        version="1.0.0",
+        title="Report Management - APIs",
+        version="1.2.0",
         routes=app.routes,
         openapi_version="3.1.0",
     )

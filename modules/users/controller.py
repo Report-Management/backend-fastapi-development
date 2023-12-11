@@ -7,7 +7,7 @@ from .repositorys import UserRepository
 from .model import UserModel
 
 router = APIRouter(
-    prefix="/users",
+    prefix="/user",
     tags=["Users"],
     responses={422: {"description": "Validation Error"}},
 )

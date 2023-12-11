@@ -12,8 +12,6 @@ bcrypt
 cryptography
 jwt
 asyncio
-torch
-bert-extractive-summarizer
 pandas
 scikit-learn
 pydantic

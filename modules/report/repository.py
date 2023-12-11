@@ -9,7 +9,6 @@ from modules.users.entity import UserEntity
 
 from .entity import ReportEntity
 from .model import *
-from .summarize import text_summarization_bert
 from .spam_detection import spam_or_ham
 from helper.date import format_relative_time
 import uuid
@@ -179,9 +178,8 @@ class ReportRepository(BaseRepo):
             return ResponseSchema(
                 code=status.HTTP_200_OK,
                 status=StatusEnum.Success.value,
-                result=str(report.first().summary)
+                result=report.first().summary
             )
-        report.update({'summary': text_summarization_bert(report.first().information)})
         db.commit()
         return ResponseSchema(
             code=status.HTTP_200_OK,
