@@ -4,7 +4,11 @@ from datetime import datetime
 from passlib.context import CryptContext
 from sqlalchemy import Column, String, DateTime, UUID, Integer, Enum, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
+from helper.date import format_relative_time
+from modules.users.entity import UserEntity
+from core.base import BaseRepo
 import datetime
+import json
 
 class ReportEntity(Base):
     __tablename__ = 'reports'
@@ -23,3 +27,40 @@ class ReportEntity(Base):
     userID = Column(UUID(as_uuid=True), ForeignKey('users.id'))
     
     reporter = relationship("UserEntity", back_populates="reports")
+
+
+    @staticmethod
+    def to_json(model: Base):
+        report_dict = {
+            "id": str(model.id),
+            "category": model.category,
+            "priority": model.priority,
+            "reportedTime": model.reportedTime.isoformat(),
+            "header": model.header,
+            "information": model.information,
+            "summary": model.summary,
+            "photo": model.photo,
+            "view": model.view,
+            "approval": model.approval,
+            "completed": model.completed,
+            "spam": model.spam,
+            "userID": str(model.userID)
+        }
+        return report_dict
+
+    @staticmethod
+    def to_model(model: Base, user_entity: UserEntity = None):
+        report = {
+            "id": str(model.id),
+            "category": model.category,
+            "priority": model.priority,
+            "header": model.header,
+            "information": model.information,
+            "approval": model.approval,
+            "view": model.view,
+            "file": model.photo,
+            "time": format_relative_time(model.reportedTime),
+            "username": None if user_entity is None else user_entity.username,
+            "profile": None if user_entity is None else user_entity.profilePhoto
+        }
+        return report

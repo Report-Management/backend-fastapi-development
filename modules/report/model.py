@@ -1,5 +1,38 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, UUID4
 from enum import Enum
+from typing import Optional, Annotated
+from fastapi import Form, UploadFile, File
+
+class CreateReportModel(BaseModel):
+    id: UUID4
+    category: str
+    priority: str
+    header: str
+    information: str
+    view: str
+    file: Optional[str] = None
+
+class UpdateReportModel(BaseModel):
+    category: str
+    priority: str
+    header: str
+    information: str
+    view: str
+
+class UpdateCategoryModel(BaseModel):
+    category: str
+
+class UpdatePriorityModel(BaseModel):
+    priority: str
+
+class UpdateHeaderModel(BaseModel):
+    header: str
+
+class UpdateInformationModel(BaseModel):
+    information: str
+
+class UpdateViewModel(BaseModel):
+    view: str
 
 class FilterEnum(Enum):
     Type = "type"
@@ -31,56 +64,17 @@ class DateEnum(Enum):
 class TypeEnum(Enum):
     Approved = 'approved'
     NotApproved = 'notapproved'
-from enum import Enum
 
-class PriorityEnum(Enum):
-    Low = 'Low'
-    Medium = 'Medium'
-    High = 'High'
+class ViewEnum(Enum):
+    Public = 'Public'
+    Anonymous = 'Anonymous'
 
 
-class createReportModel(BaseModel):
-    id: str
-    category: str
-    priority: str
-    header: str
-    information: str
-    view: str
-
-
-class createReportWithFileModel(BaseModel):
-    id: str
-    category: str
-    priority: str
-    header: str
-    information: str
-    photo: str
-    view: str
-
-
-class updateReportModel(BaseModel):
-    category: str
-    priority: str
-    header: str
-    information: str
-    view: str  
-
-
-class updateCategoryModel(BaseModel):
-    category: str
-
-
-class updatePriorityModel(BaseModel):
-    priority: str
-
-
-class updateHeaderModel(BaseModel):
-    header: str
-
-
-class updateInformationModel(BaseModel):
-    information: str
-
-
-class updateViewModel(BaseModel):
-    view: str
+class CreateReportModelV2(BaseModel):
+    id: UUID4
+    category: Annotated[CategoryEnum, Form()]
+    priority: Annotated[PriorityEnum, Form()]
+    header: Annotated[str, Form()]
+    information: Annotated[str, Form()]
+    view: Annotated[ViewEnum, Form()]
+    file: UploadFile = File(None),
