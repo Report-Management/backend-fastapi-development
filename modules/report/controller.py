@@ -1,126 +1,302 @@
 import uuid
 from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, status
-from core import get_db, ResponseSchema, JWTBearer, JWTRepo
+from fastapi import APIRouter, Depends, status, UploadFile, File, Form, HTTPException
+from core import get_db, ResponseSchema, JWTBearer, JWTRepo, SupabaseService
 from .model import *
 from .repository import ReportRepository
 from sqlalchemy import UUID
+from datetime import datetime, timedelta
+from typing import TypeVar, Annotated, Dict
+
 
 router = APIRouter(
-    prefix="/Report",
+    prefix="/report",
     tags=['Reports'],
     responses={422: {"description": "Validation Error"}},
 )
 
+@router.get(path='/show', summary="Get all report", response_model=ResponseSchema, response_model_exclude_none=True, description="Fetch all report and filter")
+def get_all_reports(
+        approval: TypeEnum = None,
+        priority: PriorityEnum = None,
+        category: CategoryEnum = None,
+        date: DateEnum = None,
+        db: Session = Depends(get_db),
+):
+    filters: Dict[FilterEnum, Enum] = {}
+    if approval:
+        filters[FilterEnum.Type] = approval
+    if priority:
+        filters[FilterEnum.Priority] = priority
+    if category:
+        filters[FilterEnum.Category] = category
+    if date:
+        filters[FilterEnum.Date] = date
+    try:
+        return ReportRepository.get_all_reports(db, filters)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.get('/show', summary=None, name='SHOW_ALL', operation_id='get_all_reports')
-def get_all_reports(db: Session = Depends(get_db)):
-    return ReportRepository.get_all_reports(db)
 
+@router.get(path='/show/approve', summary="Get report that approve", response_model=ResponseSchema, response_model_exclude_none=True, description="Fetch all report that approve")
+def get_approve_reports(db: Session = Depends(get_db)):
+    try:
+        return ReportRepository.get_all_approve_reports(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.get('/show/{id}', summary=None, name='SHOW', operation_id='get_report')
+@router.get(path='/show/{id}', name='Show by id', response_model=ResponseSchema, response_model_exclude_none=True,)
 def get_report(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.get_report(id, db)
+    if id is not type(str):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.get_report(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+@router.get(path='/showMyReport', name='SHOW MY REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
+def get_my_report(token: UUID = Depends(JWTBearer()), db: Session = Depends(get_db)):
+    try:
+        return ReportRepository.get_my_report(JWTRepo.decode_token(token), db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get('/showMyReport', summary=None, name='SHOW_MY_REPORT', operation_id='get_my_report')
-def get_my_report(USERid: UUID = Depends(JWTBearer()), db: Session = Depends(get_db)):
-    return ReportRepository.get_my_report(JWTRepo.decode_token(USERid), db)
 
-
-@router.get('/showCompletedReport', summary=None, name='SHOW_COMPLETED_REPORT', operation_id='get_completed_report')
+@router.get(path='/showCompletedReport', name="Show completed report", response_model=ResponseSchema, response_model_exclude_none=True)
 def get_my_report(db: Session = Depends(get_db)):
-    return ReportRepository.get_completed_report(db)
+    try:
+        return ReportRepository.get_completed_report(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get('/showSpamReport', summary=None, name='SHOW_SPAM_REPORT', operation_id='get_spam_report')
+@router.get(path='/showSpamReport', name='SHOW_SPAM_REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
 def get_spam_report(db: Session = Depends(get_db)):
-    return ReportRepository.get_spam_report(db)
+    try:
+        return ReportRepository.get_spam_report(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+@router.get(path='/search', name='SEARCH_REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
+def search_report(search: str, db: Session = Depends(get_db)):
+    try:
+        return ReportRepository.search_report(search, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get('/showHighPriorityReport', summary=None, name='SHOW_HIGH_PRIORITY_REPORT', operation_id='get_high_priority_report')
-def get_my_report(db: Session = Depends(get_db)):
-    return ReportRepository.get_high_priority_report(db)
+@router.post(path='/create', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema, response_model_exclude_none=True)
+def create(
+        category: Annotated[CategoryEnum, Form()],
+        priority: Annotated[PriorityEnum, Form()],
+        header: Annotated[str, Form()],
+        information: Annotated[str, Form()],
+        view: Annotated[ViewEnum, Form()],
+        file: UploadFile = File(None),
+        db: Session = Depends(get_db),
+        token: UUID = Depends(JWTBearer())
+):
+    report_id = uuid.uuid4()
+    if file:
+        bucket = 'testbucket'
+        file = SupabaseService.upload_file(bucket, file, str(report_id))
 
+    body = CreateReportModel(
+        id=report_id,
+        category=category.value,
+        priority=priority.value,
+        header=header,
+        information=information,
+        view=view.value,
+        file=file,
+    )
+    try:
+        return ReportRepository.create(body, db, JWTRepo.decode_token(token))
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.get('/showMediumPriorityReport', summary=None, name='SHOW_MEDIUM_PRIORITY_REPORT', operation_id='get_medium_priority_report')
-def get_my_report(db: Session = Depends(get_db)):
-    return ReportRepository.get_medium_priority_report(db)
-
-
-@router.get('/showLowPriorityReport', summary=None, name='SHOW_LOW_PRIORITY_REPORT', operation_id='get_low_priority_report')
-def get_my_report(db: Session = Depends(get_db)):
-    return ReportRepository.get_low_priority_report(db)
-
-@router.get('/search', summary=None, name='SEARCH_REPORT', operation_id='search_report')
-def search_report(search:str, db: Session = Depends(get_db)):
-    return ReportRepository.search_report(search,db)
-
-@router.post('/create', summary=None, name='POST', operation_id='create_report', dependencies=[Depends(JWTBearer())])
-def create(request: createReportModel, db: Session = Depends(get_db), id: UUID = Depends(JWTBearer())):
-    return ReportRepository.create(request, db, JWTRepo.decode_token(id))
-
-
-@router.put('/getSummary/{id}', summary=None, name='GET_SUMMARY', operation_id='get_summary')
+@router.get('/getSummary/{id}', name='GET_SUMMARY', response_model=ResponseSchema, response_model_exclude_none=True)
 def update_summary(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.update_summary(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.update_summary(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/update/{id}', summary=None, name='UPDATE', operation_id='update_report')
-def update(id: str, request: updateReportModel, db: Session = Depends(get_db)):
-    return ReportRepository.update(id, request, db)
+@router.put('/update/{id}', name='UPDATE', response_model=ResponseSchema, response_model_exclude_none=True)
+def update(id: str, request: UpdateReportModel, db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.update_report(id, request, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+@router.put('/updateCategory/{id}', name='UPDATE_CATEGORY', response_model=ResponseSchema, response_model_exclude_none=True)
+def update(id: str, category: CategoryEnum, db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.update_category(id, category, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+@router.put('/updatePriority/{id}', name='UPDATE_PRIORITY', response_model=ResponseSchema, response_model_exclude_none=True)
+def update(id: str, priority: PriorityEnum, db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    return ReportRepository.update_priority(id, priority, db)
 
 
-@router.put('/updateCategory/{id}', summary=None, name='UPDATE_CATEGORY', operation_id='update_report_category')
-def update(id: str, request: updateCategoryModel, db: Session = Depends(get_db)):
-    return ReportRepository.update_category(id, request, db)
+@router.put('/updateHeader/{id}', name='UPDATE_HEADER', response_model=ResponseSchema, response_model_exclude_none=True)
+def update(id: str, header: UpdateHeaderModel, db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.update_header(id, header, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/updatePriority/{id}', summary=None, name='UPDATE_PRIORITY', operation_id='update_report_priority')
-def update(id: str, request: updatePriorityModel, db: Session = Depends(get_db)):
-    return ReportRepository.update_priority(id, request, db)
+@router.put('/updateInformation/{id}', name='UPDATE_INFORMATION', response_model=ResponseSchema, response_model_exclude_none=True)
+def update(id: str, infor: UpdateInformationModel, db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.update_information(id, infor, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/updateHeader/{id}', summary=None, name='UPDATE_HEADER', operation_id='update_report_header')
-def update(id: str, request: updateHeaderModel, db: Session = Depends(get_db)):
-    return ReportRepository.update_header(id, request, db)
-
-
-@router.put('/updateInformation/{id}', summary=None, name='UPDATE_INFORMATION', operation_id='update_report_information')
-def update(id: str, request: updateInformationModel, db: Session = Depends(get_db)):
-    return ReportRepository.update_information(id, request, db)
-
-
-@router.put('/markCompleted', summary=None, name='MARK_COMPLETED', operation_id='mark_completed_report')
+@router.put('/markCompleted', name='MARK_COMPLETED', response_model=ResponseSchema, response_model_exclude_none=True)
 def mark_completed(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.mark_completed(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.mark_completed(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-
-@router.put('/unmarkCompleted', summary=None, name='UNMARK_COMPLETED', operation_id='unmark_completed_report')
+@router.put('/unmarkCompleted', name='UNMARK_COMPLETED', response_model=ResponseSchema, response_model_exclude_none=True)
 def unmark_completed(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.unmark_completed(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.unmark_completed(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/markApproved', summary=None, name='MARK_APPROVED', operation_id='mark_approved_report')
+@router.put('/markApproved', name='MARK_APPROVED', response_model=ResponseSchema, response_model_exclude_none=True)
 def mark_approved(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.mark_aprroved(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.mark_approved(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/unmarkApproved', summary=None, name='UNMARK_APPROVED', operation_id='unmark_approved_report')
+@router.put('/unmarkApproved', name='UNMARK_APPROVED', response_model=ResponseSchema, response_model_exclude_none=True)
 def unmark_approved(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.unmark_aprroved(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.unmark_approved(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/markSpam', summary=None, name='MARK_SPAM', operation_id='mark_spam_report')
+@router.put('/markSpam', name='MARK_SPAM', response_model=ResponseSchema, response_model_exclude_none=True)
 def mark_spam(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.mark_spam(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.mark_spam(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-
-@router.put('/unmarkSpam', summary=None, name='UNMARK_SPAM', operation_id='unmark_spam_report')
+@router.put('/unmarkSpam', name='UNMARK_SPAM', response_model=ResponseSchema, response_model_exclude_none=True)
 def unmark_spam(id: str, db: Session = Depends(get_db)):
-    return ReportRepository.unmark_spam(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.unmark_spam(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.delete('/delete/{id}', summary=None, name='DELETE', operation_id='delete_report')
+@router.put(path='/updateFile/{id}', name="UPDATE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
+def upload_file(id: str, file: UploadFile, db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.update_file(id, file, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+@router.delete(path='/uploadFile/{id}', name="REMOVE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
+def remove_file(id: str,  db: Session = Depends(get_db)):
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.remove_file(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.delete('/delete/{id}', name='DELETE', operation_id='delete_report')
 def remove(id: int, db: Session = Depends(get_db)):
-    return ReportRepository.remove(id, db)
+    if id is not type(str):
+        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    try:
+        return ReportRepository.remove(id, db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")

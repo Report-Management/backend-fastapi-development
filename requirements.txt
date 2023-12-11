@@ -12,8 +12,13 @@ python-jose
 bcrypt
 cryptography
 supabase
-jwt
+jwt~=1.3.1
 asyncio
 gunicorn
 torch
 bert-extractive-summarizer
+pandas~=2.1.3
+sklearn
+pydantic~=2.4.2
+scikit-learn~=1.3.2
+joblib~=1.3.2
