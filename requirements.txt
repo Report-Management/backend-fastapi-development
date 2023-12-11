@@ -15,7 +15,7 @@ asyncio
 torch
 bert-extractive-summarizer
 pandas
-sklearn
+scikit-learn
 pydantic
 scikit-learn
 joblib
