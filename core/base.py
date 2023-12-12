@@ -1,4 +1,4 @@
-import jwt
+from jose import jwt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from datetime import timedelta, datetime

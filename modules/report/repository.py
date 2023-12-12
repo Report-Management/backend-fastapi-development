@@ -69,7 +69,7 @@ class ReportRepository(BaseRepo):
         _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
-            status=StatusEnum.Success,
+            status=StatusEnum.Success.value,
             result=_list_report,
         )
 
