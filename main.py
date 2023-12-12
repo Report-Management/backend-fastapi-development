@@ -9,6 +9,7 @@ from modules.report.controller import router as posts_router
 
 app = FastAPI(
     title="Report Management",
+    docs_url="/"
 )
 
 def custom_swagger():
