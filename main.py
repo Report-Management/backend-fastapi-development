@@ -8,7 +8,6 @@ from modules.users.controller import router as user_router
 from modules.report.controller import router as posts_router
 
 app = FastAPI(
-    docs_url="/",
     title="Report Management",
 )
 
