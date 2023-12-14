@@ -17,15 +17,15 @@ router = APIRouter(
 
 @router.get(path='/show', summary="Get all report", response_model=ResponseSchema, response_model_exclude_none=True, description="Fetch all report and filter")
 def get_all_reports(
-        approval: TypeEnum = None,
+        types: TypeEnum = None,
         priority: PriorityEnum = None,
         category: CategoryEnum = None,
         date: DateEnum = None,
         db: Session = Depends(get_db),
 ):
     filters: Dict[FilterEnum, Enum] = {}
-    if approval:
-        filters[FilterEnum.Type] = approval
+    if types:
+        filters[FilterEnum.Type] = types
     if priority:
         filters[FilterEnum.Priority] = priority
     if category:

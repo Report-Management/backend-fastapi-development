@@ -18,14 +18,10 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_all_reports(db: Session, filters: Dict[FilterEnum, Enum]):
-        query = db.query(ReportEntity)
+        query = db.query(ReportEntity).filter(not_(ReportEntity.approval))
         for key, value in filters.items():
             if key == FilterEnum.Type:
-                if value == TypeEnum.Approved:
-                    is_approval = True
-                elif value == TypeEnum.NotApproved:
-                    is_approval = False
-                query = query.filter(ReportEntity.approval == is_approval)
+                query = query.filter(ReportEntity.view == value.value)
             elif key == FilterEnum.Priority:
                 priority = value.value
                 query = query.filter(ReportEntity.priority == priority)

@@ -62,8 +62,8 @@ class DateEnum(Enum):
     LastYear = 'lastyear'
 
 class TypeEnum(Enum):
-    Approved = 'approved'
-    NotApproved = 'notapproved'
+    Public = 'Public'
+    Anonymous = 'Anonymous'
 
 class ViewEnum(Enum):
     Public = 'Public'

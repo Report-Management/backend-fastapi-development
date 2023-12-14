@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo, StatusEnum
 from .entity import UserEntity
 from .repositorys import UserRepository
-from .model import UserModel
+from .model import UserModel, UserEnum
 
 router = APIRouter(
     prefix="/user",
@@ -26,19 +26,23 @@ async def get_user(db: Session = Depends(get_db), _token: str = Depends(JWTBeare
         _user = UserRepository.get_by_id(db, UserEntity, _userId)
         if _user is None:
             raise HTTPException(status_code=404, detail="User not found.")
-        if _user.role != 'Admin':
+        if _user.role != UserEnum.Admin.value:
             raise HTTPException(status_code=403, detail="Forbidden.")
 
         _users = UserRepository.get_all(db, UserEntity)
-        _list_user = [
-            {
-                "id": str(user.id),
-                "username": user.username,
-                "email": user.email,
-                "role": user.role,
-                "profilePhoto": user.profilePhoto
-            } for user in _users
-        ]
+        _list_user = []
+        for user in _users:
+            if str(user.id) != _userId:
+                _list_user.append(
+                    {
+                        "id": str(user.id),
+                        "username": user.username,
+                        "email": user.email,
+                        "role": user.role,
+                        "profilePhoto": user.profilePhoto
+                    }
+                )
+
         return ResponseSchema(
             code=200,
             status="S",
