@@ -71,8 +71,30 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_all_approve_reports(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.approval).all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        reports = db.query(ReportEntity).filter(
+            and_(
+                ReportEntity.approval,
+                not_(ReportEntity.completed)
+            )
+        ).all()
+        _list_report = []
+        for report in reports:
+            _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
+            data = {
+                "id": str(report.id),
+                "category": report.category,
+                "priority": report.priority,
+                "header": report.header,
+                "information": report.information,
+                "approval": report.approval,
+                "completed": report.completed,
+                "view": report.view,
+                "file": report.photo,
+                "time": format_relative_time(report.reportedTime),
+                "username": None if _user is None else _user.username,
+                "profile": None if _user is None else _user.profilePhoto
+            }
+            _list_report.append(data)
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -106,8 +128,29 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_completed_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.completed).all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        reports = db.query(ReportEntity).filter(
+            and_(
+                ReportEntity.completed,
+                ReportEntity.approval
+            )
+        ).all()
+        _list_report = []
+        for report in reports:
+            _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
+            data = {
+                "id": str(report.id),
+                "category": report.category,
+                "priority": report.priority,
+                "header": report.header,
+                "information": report.information,
+                "completed": report.completed,
+                "view": report.view,
+                "file": report.photo,
+                "time": format_relative_time(report.reportedTime),
+                "username": None if _user is None else _user.username,
+                "profile": None if _user is None else _user.profilePhoto
+            }
+            _list_report.append(data)
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -117,7 +160,23 @@ class ReportRepository(BaseRepo):
     @staticmethod
     def get_spam_report(db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.spam).all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = []
+        for report in reports:
+            _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
+            data = {
+                "id": str(report.id),
+                "category": report.category,
+                "priority": report.priority,
+                "header": report.header,
+                "information": report.information,
+                "spam": report.spam,
+                "view": report.view,
+                "file": report.photo,
+                "time": format_relative_time(report.reportedTime),
+                "username": None if _user is None else _user.username,
+                "profile": None if _user is None else _user.profilePhoto
+            }
+            _list_report.append(data)
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -353,7 +412,7 @@ class ReportRepository(BaseRepo):
                 if _url:
                     report = db.query(ReportEntity).filter(ReportEntity.id == id)
                     if not report.first():
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'Report with id {id} not found')
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
                     report.update({'photo': _url})
                     db.commit()
                     return ResponseSchema(
