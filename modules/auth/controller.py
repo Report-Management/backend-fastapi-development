@@ -6,6 +6,7 @@ from core import get_db, JWTRepo, TokenResponse, ResponseSchema, JWTBearer, Supa
 from modules.users import UserModel, UserLoginModel, UserEntity, UserRepository
 from .repository import AuthRepository
 from .model import AccountType
+from helper import sent_email
 
 router = APIRouter(
     prefix="/authentications",
