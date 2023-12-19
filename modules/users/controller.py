@@ -1,7 +1,7 @@
 import uuid
 from sqlalchemy.orm import Session
 from fastapi import APIRouter, Depends, status, HTTPException
-from core import get_db, ResponseSchema, JWTBearer, JWTRepo, StatusEnum
+from core import get_db, ResponseSchema, JWTBearer, JWTRepo, StatusEnum, SupabaseService
 from .entity import UserEntity
 from .repositorys import UserRepository
 from .model import UserModel, UserEnum
