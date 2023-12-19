@@ -32,10 +32,6 @@ def custom_swagger():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-@app.get("/", tags=["Root"], operation_id='root')
-async def root():
-    return {"message": "FAST-API"}
-
 app.openapi = custom_swagger
 app.include_router(auth_router)
 app.include_router(user_router)

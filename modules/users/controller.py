@@ -7,6 +7,7 @@ from .repositorys import UserRepository
 from .model import UserModel, UserEnum
 import resend
 from helper import sent_email
+from supabase import PostgrestAPIError
 
 router = APIRouter(
     prefix="/user",
@@ -55,7 +56,7 @@ async def get_user(db: Session = Depends(get_db), _token: str = Depends(JWTBeare
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 @router.get(
-        path="/user",
+        path="/get_me",
         dependencies=[Depends(JWTBearer())],
         response_model=ResponseSchema,
         response_model_exclude_none=True,
@@ -141,4 +142,45 @@ def update(id: str, db: Session = Depends(get_db), _token: str = Depends(JWTBear
     except HTTPException as http_error:
         raise http_error
     except Exception as error:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.delete(
+    path="/delete_user/{id}",
+    summary="Delete User",
+    dependencies=[Depends(JWTBearer())],
+    response_model=ResponseSchema,
+    response_model_exclude_none=True,
+    description="Admin can delete user account."
+)
+def delete_user(id: str, db: Session = Depends(get_db), _token: str = Depends(JWTBearer())):
+    try:
+        _userId = JWTRepo.decode_token(_token)
+        _userId = uuid.UUID(_userId)
+        _user = UserRepository.get_by_id(db, UserEntity, _userId)
+
+        if _user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Email not found")
+        if _user.role != 'Admin':
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
+
+        d_user = UserRepository.get_by_id(db, UserEntity, id)
+        if d_user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+        is_deleted_auth = SupabaseService.delete_user(id)
+        if is_deleted_auth is True:
+            is_deleted = UserRepository.delete_by_id(db, UserEntity, d_user.id)
+            if is_deleted is False:
+                raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+            return ResponseSchema(
+                code=status.HTTP_200_OK,
+                status="S",
+                message="Delete Completed"
+            )
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Not found user_id")
+    except HTTPException as http_error:
+        raise http_error
+    except Exception as error:
+        print(error)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")

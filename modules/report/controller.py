@@ -51,14 +51,14 @@ def get_approve_reports(db: Session = Depends(get_db)):
 
 @router.get(path='/show/{id}', name='Show by id', response_model=ResponseSchema, response_model_exclude_none=True,)
 def get_report(id: str, db: Session = Depends(get_db)):
-    if id is not type(str):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
+    if not isinstance(id, str):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="ID must be a string")
     try:
         return ReportRepository.get_report(id, db)
     except HTTPException as http_error:
         raise http_error
-    except Exception:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get(path='/showMyReport', name='SHOW MY REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
 def get_my_report(token: UUID = Depends(JWTBearer()), db: Session = Depends(get_db)):
@@ -68,7 +68,6 @@ def get_my_report(token: UUID = Depends(JWTBearer()), db: Session = Depends(get_
         raise http_error
     except Exception:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
-
 
 
 @router.get(path='/showCompletedReport', name="Show completed report", response_model=ResponseSchema, response_model_exclude_none=True)
@@ -100,7 +99,7 @@ def search_report(search: str, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.post(path='/create', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema, response_model_exclude_none=True)
+@router.post(path='/create_report', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema, response_model_exclude_none=True)
 def create(
         category: Annotated[CategoryEnum, Form()],
         priority: Annotated[PriorityEnum, Form()],
@@ -145,7 +144,7 @@ def update_summary(id: str, db: Session = Depends(get_db)):
 
 
 @router.put('/update/{id}', name='UPDATE', response_model=ResponseSchema, response_model_exclude_none=True)
-def update(id: str, request: UpdateReportModel, db: Session = Depends(get_db)):
+def update_report(id: str, request: UpdateReportModel, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
@@ -156,7 +155,7 @@ def update(id: str, request: UpdateReportModel, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 @router.put('/updateCategory/{id}', name='UPDATE_CATEGORY', response_model=ResponseSchema, response_model_exclude_none=True)
-def update(id: str, category: CategoryEnum, db: Session = Depends(get_db)):
+def update_category(id: str, category: CategoryEnum, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
@@ -167,14 +166,14 @@ def update(id: str, category: CategoryEnum, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 @router.put('/updatePriority/{id}', name='UPDATE_PRIORITY', response_model=ResponseSchema, response_model_exclude_none=True)
-def update(id: str, priority: PriorityEnum, db: Session = Depends(get_db)):
+def update_priority(id: str, priority: PriorityEnum, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     return ReportRepository.update_priority(id, priority, db)
 
 
 @router.put('/updateHeader/{id}', name='UPDATE_HEADER', response_model=ResponseSchema, response_model_exclude_none=True)
-def update(id: str, header: UpdateHeaderModel, db: Session = Depends(get_db)):
+def update_header(id: str, header: UpdateHeaderModel, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
@@ -186,7 +185,7 @@ def update(id: str, header: UpdateHeaderModel, db: Session = Depends(get_db)):
 
 
 @router.put('/updateInformation/{id}', name='UPDATE_INFORMATION', response_model=ResponseSchema, response_model_exclude_none=True)
-def update(id: str, infor: UpdateInformationModel, db: Session = Depends(get_db)):
+def update_info(id: str, infor: UpdateInformationModel, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
@@ -278,7 +277,7 @@ def upload_file(id: str, file: UploadFile, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.delete(path='/uploadFile/{id}', name="REMOVE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
+@router.delete(path='/delete_file/{id}', name="REMOVE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
 def remove_file(id: str,  db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -290,8 +289,8 @@ def remove_file(id: str,  db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.delete('/delete/{id}', name='DELETE', operation_id='delete_report')
-def remove(id: int, db: Session = Depends(get_db)):
+@router.delete('/delete_report/{id}', name='DELETE')
+def remove_report(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
