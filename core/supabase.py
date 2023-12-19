@@ -5,7 +5,7 @@ from fastapi import UploadFile, File
 class SupabaseService:
     def __init__(self):
         self.__url = "https://uazzhgvzukwpifcufyfg.supabase.co"
-        self.__key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhenpoZ3Z6dWt3cGlmY3VmeWZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE2OTg5MTI1MjAsImV4cCI6MjAxNDQ4ODUyMH0.-PNxIN4W6k9wSpcUQ75t8YjGDpofXOWk3jgL0wEDNNo"
+        self.__key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhenpoZ3Z6dWt3cGlmY3VmeWZnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY5ODkxMjUyMCwiZXhwIjoyMDE0NDg4NTIwfQ.GGxJRfo2QcP-0d-23iF9kOM9rOjN4hRrvV5nnrIkLQA"
         self.__storage_bucket = "report"
         self.supabase = create_client(self.__url, self.__key)
 
@@ -52,3 +52,12 @@ class SupabaseService:
             if image['name'] == filename:
                 return True
         return False
+
+    @staticmethod
+    def delete_user(id: str):
+        try:
+            SupabaseService().supabase.auth.admin.delete_user(id)
+            return True
+        except Exception as e:
+            print("From supabase: ", e)
+            return False

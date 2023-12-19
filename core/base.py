@@ -1,6 +1,7 @@
 from jose import jwt
 from sqlalchemy import UUID
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import SQLAlchemyError
 from datetime import timedelta, datetime
 from fastapi import Request, HTTPException, Depends
 from typing import TypeVar, Generic, Optional, Dict
@@ -21,19 +22,44 @@ class BaseRepo:
 
     @staticmethod
     def insert(db: Session, model: Generic[T]):
-        db.add(model)
-        db.commit()
-        db.refresh(model)
+        try:
+            db.add(model)
+            db.commit()
+            return model
+        except SQLAlchemyError as e:
+            print(f"Insertion failed: {e}")
+            db.rollback()
+            return None
 
     @staticmethod
     def update(db: Session, model: Generic[T]):
-        db.commit()
-        db.refresh(model)
+        try:
+            db.commit()
+            db.refresh(model)
+            return model
+        except SQLAlchemyError as e:
+            print(f"Update failed: {e}")
+            db.rollback()
+            return None
 
     @staticmethod
     def delete(db: Session, model: Generic[T]):
-        db.delete(model)
-        db.commit()
+        try:
+            db.delete(model)
+            db.commit()
+        except SQLAlchemyError as e:
+            print(f"Deletion failed: {e}")
+            db.rollback()
+            return False
+
+    @staticmethod
+    def delete_by_id(db: Session, model: Generic[T], id: UUID):
+        instance = db.query(model).get(id)
+        if instance:
+            db.delete(instance)
+            db.commit()
+            return True
+        return False
 
 
 class JWTRepo:

@@ -5,6 +5,8 @@ from core import get_db, ResponseSchema, JWTBearer, JWTRepo, StatusEnum
 from .entity import UserEntity
 from .repositorys import UserRepository
 from .model import UserModel, UserEnum
+import resend
+from helper import sent_email
 
 router = APIRouter(
     prefix="/user",
@@ -28,7 +30,6 @@ async def get_user(db: Session = Depends(get_db), _token: str = Depends(JWTBeare
             raise HTTPException(status_code=404, detail="User not found.")
         if _user.role != UserEnum.Admin.value:
             raise HTTPException(status_code=403, detail="Forbidden.")
-
         _users = UserRepository.get_all(db, UserEntity)
         _list_user = []
         for user in _users:

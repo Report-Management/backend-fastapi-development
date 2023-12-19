@@ -24,10 +24,9 @@ class ReportEntity(Base):
     approval = Column(Boolean, default=False)
     completed = Column(Boolean, default=False)
     spam = Column(Boolean, default=False)
-    userID = Column(UUID(as_uuid=True), ForeignKey('users.id'))
+    userID = Column(UUID(as_uuid=True), ForeignKey('users.id', ondelete="SET NULL"), nullable=True)
     
     reporter = relationship("UserEntity", back_populates="reports")
-
 
     @staticmethod
     def to_json(model: Base):
