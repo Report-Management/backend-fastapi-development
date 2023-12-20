@@ -6,7 +6,7 @@ from fastapi import HTTPException, status, UploadFile, File
 from typing import Dict, TypeVar
 from datetime import datetime, timedelta
 from modules.users.entity import UserEntity
-from .summarize import summarize_text
+from .summarize import summary_by_gemini
 from .entity import ReportEntity
 from .model import *
 from .spam_detection import spam_or_ham
@@ -232,7 +232,7 @@ class ReportRepository(BaseRepo):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
 
         if report.summary is None:
-            summary_text = summarize_text(report.information)
+            summary_text = summary_by_gemini(report.information)
             report.summary = summary_text
             db.commit()
 

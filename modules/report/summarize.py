@@ -1,13 +1,16 @@
-from transformers import pipeline, T5ForConditionalGeneration, T5Tokenizer
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+from fastapi import HTTPException, status
 
-def summarize_text(text):
-    model_name = "t5-small"
-    model = T5ForConditionalGeneration.from_pretrained(model_name)
-    tokenizer = T5Tokenizer.from_pretrained(model_name)
+def summary_by_gemini(text_info: str) -> str:
+    try:
+        load_dotenv()
+        genai.configure(api_key=os.getenv("API_KEY"))
+        model = genai.GenerativeModel('gemini-pro')
+        response = model.generate_content("summary make it short then original: {}".format(text_info))
+        return response.text
+    except:
+        return None
 
-    inputs = tokenizer("summarize: " + text, return_tensors="pt", max_length=512, truncation=True)
-    summary_ids = model.generate(inputs["input_ids"], max_length=150, min_length=30, length_penalty=2, num_beams=4, temperature=0.9)
-
-    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-    return summary
 
