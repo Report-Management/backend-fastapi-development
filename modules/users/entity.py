@@ -16,3 +16,6 @@ class UserEntity(Base):
     profilePhoto = Column(String, default=None)
 
     reports = relationship('ReportEntity', back_populates='reporter')
+
+    class Config:
+        orm_mode = True

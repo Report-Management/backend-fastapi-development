@@ -7,7 +7,7 @@ class ResponseSchema(BaseModel):
     code: int
     status: str
     message: Optional[str] = None
-    result: Optional[Any] = None
+    result: Optional[T] = None
 
 class TokenResponse(BaseModel):
     access_token: str

@@ -6,7 +6,7 @@ from fastapi import HTTPException, status, UploadFile, File
 from typing import Dict, TypeVar
 from datetime import datetime, timedelta
 from modules.users.entity import UserEntity
-
+from .summarize import summarize_text
 from .entity import ReportEntity
 from .model import *
 from .spam_detection import spam_or_ham
@@ -226,20 +226,20 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def update_summary(id: UUID, db: Session):
-        report = db.query(ReportEntity).filter(ReportEntity.id == id)
-        if not report.first():
+        report = db.query(ReportEntity).filter(ReportEntity.id == id).first()
+
+        if not report:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
-        elif report.first().summary is not None:
-            return ResponseSchema(
-                code=status.HTTP_200_OK,
-                status=StatusEnum.Success.value,
-                result=report.first().summary
-            )
-        db.commit()
+
+        if report.summary is None:
+            summary_text = summarize_text(report.information)
+            report.summary = summary_text
+            db.commit()
+
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
-            result=str(report.first().summary)
+            result=report.summary
         )
 
     @staticmethod

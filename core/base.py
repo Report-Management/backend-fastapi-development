@@ -3,7 +3,7 @@ from sqlalchemy import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from datetime import timedelta, datetime
-from fastapi import Request, HTTPException, Depends
+from fastapi import Request, HTTPException, Depends, status
 from typing import TypeVar, Generic, Optional, Dict
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import SECRET_KEY, ALGORITHM
@@ -63,7 +63,6 @@ class BaseRepo:
 
 
 class JWTRepo:
-
     @staticmethod
     def generate_token(data: dict):
         to_encode = data.copy()
@@ -77,11 +76,11 @@ class JWTRepo:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM], audience="authenticated")
             return payload.get('sub')
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=403, detail="Token expired.")
-        except jwt.InvalidTokenError:
-            raise HTTPException(status_code=403, detail="Forbidden.")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired.")
+        except jwt.JWTError:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
         except Exception as e:
-            return {}
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
     @staticmethod
     def get_token(request: Request):
