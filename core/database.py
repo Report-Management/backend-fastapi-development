@@ -5,9 +5,9 @@ import os
 
 load_dotenv()
 
-PASSWORD_DATABASE = os.getenv("PASSWORD_DATABASE")
-HOST_URL = os.getenv("HOST_URL")
-PORT = os.getenv("PORT")
+PASSWORD_DATABASE = "my-secret-password"
+HOST_URL = "db.uazzhgvzukwpifcufyfg.supabase.co"
+PORT = "5432"
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{PASSWORD_DATABASE}@{HOST_URL}:{PORT}/postgres"
 engine = create_engine(
@@ -26,5 +26,5 @@ def get_db():
 
 # JWT Configuration
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
+SECRET_KEY = "QFtGiZPo/eEgYWSxl0Y4mTa+j5+TMUlluP7mXnQ2I1xwy3iSJLxrkGxjdz3o59hdhRwIE2s5T5FpjT7zO5zIHw=="
+ALGORITHM = "HS256"
