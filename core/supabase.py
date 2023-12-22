@@ -1,6 +1,7 @@
 from supabase import create_client
 from datetime import datetime
 from fastapi import UploadFile, File
+import os
 
 class SupabaseService:
     def __init__(self):
@@ -14,13 +15,13 @@ class SupabaseService:
         if bucket is None:
             bucket = SupabaseService().__storage_bucket
 
-        file_name = f"{report_id}.png"
+        file_name = f"{report_id}.{file.filename.split('.')[-1]}"
         file_content = file.file.read()
         response = SupabaseService().supabase.storage.from_(bucket).upload(
             path=file_name,
             file=file_content,
             file_options={
-                'content-type': "image/png"
+                'content-type': file.content_type,
             }
         )
         if response.status_code == 200:
