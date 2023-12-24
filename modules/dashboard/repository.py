@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import extract
 from core import BaseRepo
 from modules.report.entity import ReportEntity
+from core import ResponseSchema
 import datetime
 
 
@@ -22,11 +23,15 @@ class DashboardRepository(BaseRepo):
             for i in range(12):
                 dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
 
-        return {
-            'title': "Reports Per Month",
-            'xLabels': xLabels,
-            'dataset': dataset
-        }
+        return ResponseSchema(
+            code=200,
+            status="S",
+            result={
+                'title': "Reports Per Month",
+                'xLabels': xLabels,
+                'datasets': dataset
+            }
+        )
 
     @staticmethod
     def dashboard_year(db: Session):
