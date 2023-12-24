@@ -1,5 +1,5 @@
 from core import BaseRepo, ResponseSchema, StatusEnum, SupabaseService
-from sqlalchemy import and_, UUID, not_, or_
+from sqlalchemy import and_, UUID, not_, or_, extract
 from sqlalchemy.sql.expression import false
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile, File
@@ -13,6 +13,7 @@ from .spam_detection import spam_or_ham
 from helper.date import format_relative_time
 import uuid
 import json
+
 
 class ReportRepository(BaseRepo):
 
@@ -62,7 +63,8 @@ class ReportRepository(BaseRepo):
                         )
                     )
         reports = query.all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
+                        report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -119,7 +121,8 @@ class ReportRepository(BaseRepo):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Report with the USER {USERid} is not available")
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
+                        report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -196,6 +199,18 @@ class ReportRepository(BaseRepo):
         ).all()
         _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
                         report in reports]
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status=StatusEnum.Success.value,
+            result=_list_report,
+        )
+
+    @staticmethod
+    def get_all_report_month(db: Session):
+        reports = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == 2023).all()
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
+                        report in reports]
+
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -412,7 +427,8 @@ class ReportRepository(BaseRepo):
                 if _url:
                     report = db.query(ReportEntity).filter(ReportEntity.id == id)
                     if not report.first():
-                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
+                        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                            detail=f'Report with id {id} not found')
                     report.update({'photo': _url})
                     db.commit()
                     return ResponseSchema(

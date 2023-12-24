@@ -8,14 +8,15 @@ from sqlalchemy import UUID
 from datetime import datetime, timedelta
 from typing import TypeVar, Annotated, Dict
 
-
 router = APIRouter(
     prefix="/report",
     tags=['Reports'],
     responses={422: {"description": "Validation Error"}},
 )
 
-@router.get(path='/show', summary="Get all report", response_model=ResponseSchema, response_model_exclude_none=True, description="Fetch all report and filter")
+
+@router.get(path='/show', summary="Get all report", response_model=ResponseSchema, response_model_exclude_none=True,
+            description="Fetch all report and filter")
 def get_all_reports(
         types: TypeEnum = None,
         priority: PriorityEnum = None,
@@ -40,7 +41,8 @@ def get_all_reports(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get(path='/show/approve', summary="Get report that approve", response_model=ResponseSchema, response_model_exclude_none=True, description="Fetch all report that approve")
+@router.get(path='/show/approve', summary="Get report that approve", response_model=ResponseSchema,
+            response_model_exclude_none=True, description="Fetch all report that approve")
 def get_approve_reports(db: Session = Depends(get_db)):
     try:
         return ReportRepository.get_all_approve_reports(db)
@@ -49,7 +51,8 @@ def get_approve_reports(db: Session = Depends(get_db)):
     except Exception:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.get(path='/show/{id}', name='Show by id', response_model=ResponseSchema, response_model_exclude_none=True,)
+
+@router.get(path='/show/{id}', name='Show by id', response_model=ResponseSchema, response_model_exclude_none=True, )
 def get_report(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -60,7 +63,9 @@ def get_report(id: str, db: Session = Depends(get_db)):
     except Exception:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.get(path='/showMyReport', name='SHOW MY REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
+
+@router.get(path='/showMyReport', name='SHOW MY REPORT', response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def get_my_report(token: UUID = Depends(JWTBearer()), db: Session = Depends(get_db)):
     try:
         return ReportRepository.get_my_report(JWTRepo.decode_token(token), db)
@@ -70,8 +75,8 @@ def get_my_report(token: UUID = Depends(JWTBearer()), db: Session = Depends(get_
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-
-@router.get(path='/showCompletedReport', name="Show completed report", response_model=ResponseSchema, response_model_exclude_none=True)
+@router.get(path='/showCompletedReport', name="Show completed report", response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def get_my_report(db: Session = Depends(get_db)):
     try:
         return ReportRepository.get_completed_report(db)
@@ -81,7 +86,8 @@ def get_my_report(db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get(path='/showSpamReport', name='SHOW_SPAM_REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
+@router.get(path='/showSpamReport', name='SHOW_SPAM_REPORT', response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def get_spam_report(db: Session = Depends(get_db)):
     try:
         return ReportRepository.get_spam_report(db)
@@ -89,6 +95,7 @@ def get_spam_report(db: Session = Depends(get_db)):
         raise http_error
     except Exception:
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
 
 @router.get(path='/search', name='SEARCH_REPORT', response_model=ResponseSchema, response_model_exclude_none=True)
 def search_report(search: str, db: Session = Depends(get_db)):
@@ -100,7 +107,18 @@ def search_report(search: str, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.post(path='/create', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema, response_model_exclude_none=True)
+@router.get(path='/dashboard/month', name='dashboard_MONTH', response_model=ResponseSchema, response_model_exclude_none=True)
+def report_month(db: Session = Depends(get_db)):
+    try:
+        return ReportRepository.get_all_report_month(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.post(path='/create', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema,
+             response_model_exclude_none=True)
 def create(
         category: Annotated[CategoryEnum, Form()],
         priority: Annotated[PriorityEnum, Form()],
@@ -132,6 +150,7 @@ def create(
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
+
 @router.get('/getSummary/{id}', name='GET_SUMMARY', response_model=ResponseSchema, response_model_exclude_none=True)
 def update_summary(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
@@ -155,7 +174,9 @@ def update(id: str, request: UpdateReportModel, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.put('/updateCategory/{id}', name='UPDATE_CATEGORY', response_model=ResponseSchema, response_model_exclude_none=True)
+
+@router.put('/updateCategory/{id}', name='UPDATE_CATEGORY', response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def update(id: str, category: CategoryEnum, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -166,7 +187,9 @@ def update(id: str, category: CategoryEnum, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.put('/updatePriority/{id}', name='UPDATE_PRIORITY', response_model=ResponseSchema, response_model_exclude_none=True)
+
+@router.put('/updatePriority/{id}', name='UPDATE_PRIORITY', response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def update(id: str, priority: PriorityEnum, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -185,7 +208,8 @@ def update(id: str, header: UpdateHeaderModel, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put('/updateInformation/{id}', name='UPDATE_INFORMATION', response_model=ResponseSchema, response_model_exclude_none=True)
+@router.put('/updateInformation/{id}', name='UPDATE_INFORMATION', response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def update(id: str, infor: UpdateInformationModel, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -208,7 +232,9 @@ def mark_completed(id: str, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.put('/unmarkCompleted', name='UNMARK_COMPLETED', response_model=ResponseSchema, response_model_exclude_none=True)
+
+@router.put('/unmarkCompleted', name='UNMARK_COMPLETED', response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def unmark_completed(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -255,6 +281,7 @@ def mark_spam(id: str, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
+
 @router.put('/unmarkSpam', name='UNMARK_SPAM', response_model=ResponseSchema, response_model_exclude_none=True)
 def unmark_spam(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
@@ -267,7 +294,8 @@ def unmark_spam(id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.put(path='/updateFile/{id}', name="UPDATE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
+@router.put(path='/updateFile/{id}', name="UPDATE_FILE", response_model=ResponseSchema,
+            response_model_exclude_none=True)
 def upload_file(id: str, file: UploadFile, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
@@ -278,8 +306,10 @@ def upload_file(id: str, file: UploadFile, db: Session = Depends(get_db)):
     except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.delete(path='/uploadFile/{id}', name="REMOVE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
-def remove_file(id: str,  db: Session = Depends(get_db)):
+
+@router.delete(path='/uploadFile/{id}', name="REMOVE_FILE", response_model=ResponseSchema,
+               response_model_exclude_none=True)
+def remove_file(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
