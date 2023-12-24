@@ -6,11 +6,13 @@ from core import engine, Base
 from modules.auth.controller import router as auth_router
 from modules.users.controller import router as user_router
 from modules.report.controller import router as posts_router
+from modules.dashboard.controller import router as dashboard_router
 
 app = FastAPI(
     title="Report Management",
     docs_url="/"
 )
+
 
 def custom_swagger():
     if app.openapi_schema:
@@ -32,6 +34,7 @@ def custom_swagger():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 @app.get("/", tags=["Root"], operation_id='root')
 async def root():
     return {"message": "FAST-API"}
@@ -40,6 +43,7 @@ app.openapi = custom_swagger
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(posts_router)
+app.include_router(dashboard_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=['*'],

@@ -1,0 +1,71 @@
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from .repository import DashboardRepository
+from core import get_db
+
+router = APIRouter(
+    prefix="/dashboard",
+    tags=['Dashboard'],
+    responses={422: {"description": "Validation Error"}},
+)
+
+
+@router.get("/month", operation_id='dashboard_month')
+def dashboard_month(year, db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_month(db, year)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/year",  operation_id='dashboard_year')
+def dashboard_year(db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_year(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/detail", operation_id='dashboard_detail')
+def dashboard_detail(db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_detail(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/category", operation_id='dashboard_categoty')
+def dashboard_category(db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_category(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/solve", operation_id='dashboard_solve')
+def dashboard_solve(db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_solve(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/spam", operation_id='dashboard_spam')
+def dashboard_spam(db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_spam(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
