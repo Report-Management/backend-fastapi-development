@@ -1,9 +1,10 @@
 from _cffi_backend import typeof
 from sqlalchemy.orm import Session
 from sqlalchemy import extract
-from core import BaseRepo
+from core import BaseRepo, ResponseSchema
 from modules.report.entity import ReportEntity
 import datetime
+from fastapi import APIRouter, Depends, HTTPException, status
 
 
 class DashboardRepository(BaseRepo):
@@ -22,11 +23,14 @@ class DashboardRepository(BaseRepo):
             for i in range(12):
                 dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
 
-        return {
-            'title': "Reports Per Month",
-            'xLabels': xLabels,
-            'dataset': dataset
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'title': "Reports Per Month",
+                    'xLabels': xLabels,
+                    'dataset': dataset}
+        )
+
 
     @staticmethod
     def dashboard_year(db: Session):
@@ -44,11 +48,14 @@ class DashboardRepository(BaseRepo):
         for i in range(len(year)):
             dataset.append(data.filter(extract('year', ReportEntity.reportedTime) == year[i]).count())
 
-        return {
-            'title': "Reports Per Year",
-            'Year': year,
-            'dataset': dataset
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'title': "Reports Per Year",
+                    'Year': year,
+                    'dataset': dataset
+                    }
+        )
 
     @staticmethod
     def dashboard_detail(db: Session):
@@ -63,9 +70,12 @@ class DashboardRepository(BaseRepo):
                         {"label": "Spam",
                          "number": data.filter(ReportEntity.spam == True).count()}]
 
-        return {
-            'reportDetail': reportdetail
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'reportDetail': reportdetail
+                    }
+        )
 
     @staticmethod
     def dashboard_category_all(db: Session):
@@ -80,11 +90,14 @@ class DashboardRepository(BaseRepo):
         for i in range(len(category)):
             dataset.append(data.filter(ReportEntity.category == category[i]).count())
 
-        return {
-            'title': "Trending Category",
-            'xLabels': category,
-            'datasets': dataset
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'title': "Trending Category",
+                    'xLabels': category,
+                    'datasets': dataset
+                    }
+        )
 
     @staticmethod
     def dashboard_category_year(db: Session, year: int):
@@ -99,11 +112,14 @@ class DashboardRepository(BaseRepo):
         for i in range(len(category)):
             dataset.append(data.filter(ReportEntity.category == category[i]).count())
 
-        return {
-            'title': "Trending Category",
-            'xLabels': category,
-            'datasets': dataset
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'title': "Trending Category",
+                    'xLabels': category,
+                    'datasets': dataset
+                    }
+        )
 
     @staticmethod
     def dashboard_solve(db: Session):
@@ -113,11 +129,14 @@ class DashboardRepository(BaseRepo):
         dataset.append(data.filter(ReportEntity.completed == True).count())
         dataset.append(data.filter(ReportEntity.completed == False).count())
 
-        return {
-            'title': "Solved Report",
-            'xLabels': ["Solved", "In Progress"],
-            'datasets': dataset
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'title': "Solved Report",
+                    'xLabels': ["Solved", "In Progress"],
+                    'datasets': dataset
+                    }
+        )
 
     @staticmethod
     def dashboard_spam(db: Session):
@@ -127,8 +146,11 @@ class DashboardRepository(BaseRepo):
         dataset.append(data.filter(ReportEntity.spam == True).count())
         dataset.append(data.filter(ReportEntity.spam == False).count())
 
-        return {
-            'title': "Spam Report",
-            'xLabels': ["Spam", "Not Spam"],
-            'datasets': dataset
-        }
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'title': "Spam Report",
+                    'xLabels': ["Spam", "Not Spam"],
+                    'datasets': dataset
+                    }
+        )
