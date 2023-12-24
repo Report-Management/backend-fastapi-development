@@ -68,8 +68,27 @@ class DashboardRepository(BaseRepo):
         }
 
     @staticmethod
-    def dashboard_category(db: Session):
+    def dashboard_category_all(db: Session):
         data = db.query(ReportEntity)
+
+        category = []
+        for i in range(len(data.all())):
+            if data.all()[i].category not in category:
+                category.append(data.all()[i].category)
+
+        dataset = []
+        for i in range(len(category)):
+            dataset.append(data.filter(ReportEntity.category == category[i]).count())
+
+        return {
+            'title': "Trending Category",
+            'xLabels': category,
+            'datasets': dataset
+        }
+
+    @staticmethod
+    def dashboard_category_year(db: Session, year: int):
+        data = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == year)
 
         category = []
         for i in range(len(data.all())):

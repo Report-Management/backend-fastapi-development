@@ -41,10 +41,20 @@ def dashboard_detail(db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/category", operation_id='dashboard_categoty')
-def dashboard_category(db: Session = Depends(get_db)):
+@router.get("/category/all", operation_id='dashboard_categoty_all')
+def dashboard_category_all(db: Session = Depends(get_db)):
     try:
-        return DashboardRepository.dashboard_category(db)
+        return DashboardRepository.dashboard_category_all(db)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/category", operation_id='dashboard_category_year')
+def dashboard_category_year(year, db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_category_year(db, year)
     except HTTPException as http_error:
         raise http_error
     except Exception:
