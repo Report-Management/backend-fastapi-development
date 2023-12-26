@@ -25,24 +25,14 @@ class DashboardRepository(BaseRepo):
                 dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
 
         return ResponseSchema(
-<<<<<<< HEAD
             code=status.HTTP_200_OK,
             status="S",
             result={'title': "Reports Per Month",
                     'xLabels': xLabels,
-                    'dataset': dataset}
+                    'dataset': dataset
+                    }
         )
 
-=======
-            code=200,
-            status="S",
-            result={
-                'title': "Reports Per Month",
-                'xLabels': xLabels,
-                'datasets': dataset
-            }
-        )
->>>>>>> b20805e4430643c728e5219bd1f7a9c5308ae59d
 
     @staticmethod
     def dashboard_year(db: Session):
