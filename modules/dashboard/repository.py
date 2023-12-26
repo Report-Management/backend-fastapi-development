@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import extract
 from core import BaseRepo, ResponseSchema
 from modules.report.entity import ReportEntity
+from core import ResponseSchema
 import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -24,6 +25,7 @@ class DashboardRepository(BaseRepo):
                 dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
 
         return ResponseSchema(
+<<<<<<< HEAD
             code=status.HTTP_200_OK,
             status="S",
             result={'title': "Reports Per Month",
@@ -31,6 +33,16 @@ class DashboardRepository(BaseRepo):
                     'dataset': dataset}
         )
 
+=======
+            code=200,
+            status="S",
+            result={
+                'title': "Reports Per Month",
+                'xLabels': xLabels,
+                'datasets': dataset
+            }
+        )
+>>>>>>> b20805e4430643c728e5219bd1f7a9c5308ae59d
 
     @staticmethod
     def dashboard_year(db: Session):
