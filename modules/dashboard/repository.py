@@ -27,10 +27,11 @@ class DashboardRepository(BaseRepo):
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
-            result={'title': "Reports Per Month",
-                    'xLabels': xLabels,
-                    'dataset': dataset
-                    }
+            result={
+                'title': "Reports Per Month",
+                'xLabels': xLabels,
+                'datasets': dataset
+            }
         )
 
 
@@ -55,7 +56,7 @@ class DashboardRepository(BaseRepo):
             status="S",
             result={'title': "Reports Per Year",
                     'Year': year,
-                    'dataset': dataset
+                    'datasets': dataset
                     }
         )
 
