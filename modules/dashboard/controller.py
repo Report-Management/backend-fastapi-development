@@ -62,9 +62,9 @@ def dashboard_category_year(year, db: Session = Depends(get_db)):
 
 
 @router.get("/solve", operation_id='dashboard_solve')
-def dashboard_solve(db: Session = Depends(get_db)):
+def dashboard_solve(year, month, db: Session = Depends(get_db)):
     try:
-        return DashboardRepository.dashboard_solve(db)
+        return DashboardRepository.dashboard_solve(db, year, month)
     except HTTPException as http_error:
         raise http_error
     except Exception:
@@ -72,9 +72,19 @@ def dashboard_solve(db: Session = Depends(get_db)):
 
 
 @router.get("/spam", operation_id='dashboard_spam')
-def dashboard_spam(db: Session = Depends(get_db)):
+def dashboard_spam(year, month, db: Session = Depends(get_db)):
     try:
-        return DashboardRepository.dashboard_spam(db)
+        return DashboardRepository.dashboard_spam(db, year, month)
+    except HTTPException as http_error:
+        raise http_error
+    except Exception:
+        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
+
+
+@router.get("/date", operation_id='dashboard_date')
+def dashboard_date(db: Session = Depends(get_db)):
+    try:
+        return DashboardRepository.dashboard_date(db)
     except HTTPException as http_error:
         raise http_error
     except Exception:

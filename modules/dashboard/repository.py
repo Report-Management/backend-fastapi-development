@@ -1,4 +1,3 @@
-from _cffi_backend import typeof
 from sqlalchemy.orm import Session
 from sqlalchemy import extract
 from core import BaseRepo, ResponseSchema
@@ -55,7 +54,7 @@ class DashboardRepository(BaseRepo):
             code=status.HTTP_200_OK,
             status="S",
             result={'title': "Reports Per Year",
-                    'Year': year,
+                    'xLabels': year,
                     'datasets': dataset
                     }
         )
@@ -125,8 +124,17 @@ class DashboardRepository(BaseRepo):
         )
 
     @staticmethod
-    def dashboard_solve(db: Session):
+    def dashboard_solve(db: Session, year: int, month: int):
         data = db.query(ReportEntity).filter(ReportEntity.approval == True)
+
+        if int(year) != 0 and int(month) == 0:
+            data = data.filter(extract('year', ReportEntity.reportedTime) == year)
+        elif int(year) != 0 and int(month) != 0:
+            data = data.filter(extract('year', ReportEntity.reportedTime) == year).filter(
+                extract('month', ReportEntity.reportedTime) == month)
+        elif int(year) == 0 and int(month) != 0:
+            data = data.filter(extract('month', ReportEntity.reportedTime) == month)
+
 
         dataset = []
         dataset.append(data.filter(ReportEntity.completed == True).count())
@@ -142,8 +150,16 @@ class DashboardRepository(BaseRepo):
         )
 
     @staticmethod
-    def dashboard_spam(db: Session):
-        data = db.query(ReportEntity)
+    def dashboard_spam(db: Session, year: int, month: int):
+        if int(year) == 0 and int(month) == 0:
+            data = db.query(ReportEntity)
+        elif int(year) != 0 and int(month) == 0:
+            data = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == year)
+        elif int(year) == 0 and int(month) != 0:
+            data = db.query(ReportEntity).filter(extract('month', ReportEntity.reportedTime) == month)
+        else:
+            data = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == year).filter(
+                extract('month', ReportEntity.reportedTime) == month)
 
         dataset = []
         dataset.append(data.filter(ReportEntity.spam == True).count())
@@ -155,5 +171,30 @@ class DashboardRepository(BaseRepo):
             result={'title': "Spam Report",
                     'xLabels': ["Spam", "Not Spam"],
                     'datasets': dataset
+                    }
+        )
+
+    @staticmethod
+    def dashboard_date(db: Session):
+        data = db.query(ReportEntity)
+
+        # find all year in database
+        year = []
+        for i in range(len(data.all())):
+            if int(data.all()[i].reportedTime.strftime("%Y")) not in year:
+                year.append(int(data.all()[i].reportedTime.strftime("%Y")))
+        year.sort()
+        year.append(0)
+
+        # get all month of this year
+        month = list(range(int(datetime.datetime.now().month)+1))
+        thisyear = datetime.datetime.now().year
+
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            result={'thisYear': thisyear,
+                    'allYear': year,
+                    'thisMonth': month
                     }
         )
