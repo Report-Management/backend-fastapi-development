@@ -5,12 +5,12 @@ from fastapi import HTTPException, status
 
 def summary_by_gemini(text_info: str) -> str:
     try:
-        load_dotenv()
         genai.configure(api_key="AIzaSyDBNL6Na06RSz3KURODchvC0vuyGzbokrk")
         model = genai.GenerativeModel('gemini-pro')
-        response = model.generate_content("summary make it short then original: {}".format(text_info))
+        response = model.generate_content("Summary this text and make it short then original: {}".format(text_info))
         return response.text
-    except:
+    except Exception as e:
+        print(e)
         return None
 
 

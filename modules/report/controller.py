@@ -136,7 +136,7 @@ def update_summary(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
-        return ReportRepository.update_summary(id, db)
+        return ReportRepository.update_summary_report(id, db)
     except HTTPException as http_error:
         raise http_error
     except Exception:
