@@ -213,7 +213,7 @@ class ReportRepository(BaseRepo):
             view=request.view,
             photo=request.file,
             spam=spam_or_ham(request.information),
-            userID=user_id if request.view == ViewEnum.Public.value else None
+            userID=user_id
         )
         db.add(new_report)
         db.commit()
