@@ -227,24 +227,21 @@ class ReportRepository(BaseRepo):
     @staticmethod
     def update_summary_report(id: UUID, db: Session):
         report = db.query(ReportEntity).filter(ReportEntity.id == id).first()
-        print(report.summary)
-        print(report.information)
-
-
         if not report:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
 
+
         if report.summary is None:
-            summary_text = summary_by_gemini(report.information)
+            summary_text = None
             print(summary_text)
             report.summary = summary_text
             db.commit()
 
-            return ResponseSchema(
-                code=status.HTTP_200_OK,
-                status=StatusEnum.Success.value,
-                result=report.summary
-            )
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status=StatusEnum.Success.value,
+            result=report.summary
+        )
 
 
     @staticmethod
