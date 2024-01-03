@@ -1,12 +1,15 @@
 from passlib.context import CryptContext
+from cryptography.fernet import Fernet, InvalidToken, InvalidSignature
 from sqlalchemy.orm import Session
 import uuid
+import base64
 from fastapi import APIRouter, Depends, HTTPException, status
 from core import get_db, JWTRepo, TokenResponse, ResponseSchema, JWTBearer, SupabaseService
 from modules.users import UserModel, UserLoginModel, UserEntity, UserRepository
 from .repository import AuthRepository
-from .model import AccountType
-from helper import sent_email
+from .model import AccountType, EmailModel
+from helper import sent_email, sent_email_reset_password, rsa
+import json
 
 router = APIRouter(
     prefix="/authentications",
@@ -135,3 +138,74 @@ async def check(id: str, db: Session = Depends(get_db)) -> ResponseSchema:
     except Exception as error:
         print(error)
         raise HTTPException(status_code=500, detail="Internal server error.")
+
+@router.post(
+    path='/forget-password',
+    summary="forgot password",
+    name='POST',
+    response_model=ResponseSchema,
+    response_model_exclude_none=True,
+    description="forgot password"
+)
+def forget_password(body: EmailModel, db: Session = Depends(get_db)):
+    try:
+        _user = AuthRepository.find_by_email(db, UserEntity, body.email)
+        if _user is None:
+            raise HTTPException(status_code=404, detail="Email not found")
+
+        message = json.dumps({
+            "email": body.email,
+        })
+        rsa_value = rsa.encrypt_message(message)
+        link = f"https://reportmanagement.online/reset-password?id={rsa_value}"
+
+        # sent_email_reset_password(
+        #     sender="noreplay@reportmanagement.online",
+        #     to=body.email,
+        #     link=link
+        # )
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            message="Check your email to reset password.",
+            result={
+                "data": rsa_value
+            }
+        )
+    except HTTPException as http_error:
+        raise http_error
+    except Exception as error:
+        print(error)
+        raise HTTPException(status_code=500, detail="Internal server error.")
+
+
+@router.post(
+    path='/verify-reset-password',
+    summary="reset password",
+    name='POST',
+    # response_model=ResponseSchema,
+    # response_model_exclude_none=True,
+    description="reset password"
+)
+def verify_id(id: str):
+    try:
+        data = rsa.decrypt_message(id)
+        if data is None:
+            raise HTTPException(status_code=404, detail="Email not found")
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status="S",
+            message="Check your email to reset password.",
+            result={
+                "data": json.loads(data)
+            }
+        )
+    except HTTPException as http_error:
+        raise http_error
+    except InvalidToken:
+        raise HTTPException(status_code=404, detail="Invalid token")
+    except InvalidSignature:
+        raise HTTPException(status_code=404, detail="Invalid token")
+    except Exception as error:
+        raise HTTPException(status_code=500, detail="Internal server error.")
+

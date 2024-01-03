@@ -10,5 +10,20 @@ def sent_email(sender: str | None, to: str, body: dict) -> bool:
             "html": f"<p>Hello {body.get('username')},<p><p>Email: <strong>{body.get('email')}</strong></p><p>Password: <strong>{body.get('password')}</strong></p><p>Our Website: <strong>reportmanagement.online</strong></p>"
         })
         return True
-    except:
+    except Exception as e:
+        print(e)
+        return False
+
+def sent_email_reset_password(sender: str | None, to: str,  link: str) -> bool:
+    try:
+        resend.api_key = "re_g2z8DreF_AJxToFAUcCLRLsG53eFKpdUg"
+        resend.Emails.send({
+            "from": sender,
+            "to": to,
+            "subject": "Report Management System",
+            "text": f"Reset Password: {link}"
+        })
+        return True
+    except Exception as e:
+        print(e)
         return False
