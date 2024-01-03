@@ -189,23 +189,21 @@ def forget_password(body: EmailModel, db: Session = Depends(get_db)):
 )
 def verify_id(id: str):
     try:
-        data = rsa.decrypt_message(id)
-        if data is None:
-            raise HTTPException(status_code=404, detail="Email not found")
+        decrypted_data = rsa.decrypt_message(id)
+        if decrypted_data is None:
+            raise HTTPException(status_code=404, detail="Invalid token")
+
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
             message="Check your email to reset password.",
             result={
-                "data": json.loads(data)
+                "data": json.loads(decrypted_data)
             }
         )
-    except HTTPException as http_error:
-        raise http_error
     except InvalidToken:
         raise HTTPException(status_code=404, detail="Invalid token")
-    except InvalidSignature:
-        raise HTTPException(status_code=404, detail="Invalid token")
     except Exception as error:
+        print(error)
         raise HTTPException(status_code=500, detail="Internal server error.")
 
