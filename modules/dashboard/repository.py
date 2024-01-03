@@ -15,20 +15,23 @@ class DashboardRepository(BaseRepo):
         dataset = []
         xLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                    'November', 'December']
+        month = []
 
         if int(year) == datetime.datetime.now().year:
             for i in range(datetime.datetime.now().month):
                 dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
+                month.append(xLabels[i])
         else:
             for i in range(12):
                 dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
+                month.append(xLabels[i])
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
             result={
                 'title': "Reports Per Month",
-                'xLabels': xLabels,
+                'xLabels': month,
                 'datasets': dataset
             }
         )
