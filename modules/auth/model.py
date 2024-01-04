@@ -8,3 +8,6 @@ class AccountType(Enum):
 
 class EmailModel(BaseModel):
     email: str
+
+class ForgetPasswordModel(BaseModel):
+    password: str

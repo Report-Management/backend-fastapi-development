@@ -36,7 +36,8 @@ def get_all_reports(
         return ReportRepository.get_all_reports(db, filters)
     except HTTPException as http_error:
         raise http_error
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 

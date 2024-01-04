@@ -51,7 +51,7 @@ class ReportRepository(BaseRepo):
                             ReportEntity.reportedTime >= last_month_start,
                             ReportEntity.reportedTime <= last_month_end
                             )
-                )
+                    )
 
                 elif value == DateEnum.LastYear:
                     today = datetime.now()
@@ -64,7 +64,7 @@ class ReportRepository(BaseRepo):
                         )
                     )
         reports = query.order_by(desc(ReportEntity.reportedTime)).all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -93,8 +93,8 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": None if _user is None else _user.username,
-                "profile": None if _user is None else _user.profilePhoto
+                "username": "Deleted Account" if _user is None else _user.username,
+                "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -121,7 +121,7 @@ class ReportRepository(BaseRepo):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Report with the USER {USERid} is not available")
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -149,8 +149,8 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": None if _user is None else _user.username,
-                "profile": None if _user is None else _user.profilePhoto
+                "username": "Deleted Account" if _user is None else _user.username,
+                "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -175,8 +175,8 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": None if _user is None else _user.username,
-                "profile": None if _user is None else _user.profilePhoto
+                "username": "Deleted Account" if _user is None else _user.username,
+                "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -196,8 +196,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.approval
             )
         ).order_by(desc(ReportEntity.reportedTime)).all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
-                        report in reports]
+        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,

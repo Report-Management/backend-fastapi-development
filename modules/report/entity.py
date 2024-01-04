@@ -7,6 +7,7 @@ from sqlalchemy.orm import relationship
 from helper.date import format_relative_time
 from modules.users.entity import UserEntity
 from core.base import BaseRepo
+from .model import ViewEnum
 import datetime
 import json
 
@@ -48,7 +49,7 @@ class ReportEntity(Base):
         return report_dict
 
     @staticmethod
-    def to_model(model: Base, user_entity: UserEntity = None):
+    def to_model(model: Base, _user: UserEntity = None):
         report = {
             "id": str(model.id),
             "category": model.category,
@@ -59,7 +60,7 @@ class ReportEntity(Base):
             "view": model.view,
             "file": model.photo,
             "time": format_relative_time(model.reportedTime),
-            "username": None if user_entity is None else user_entity.username,
-            "profile": None if user_entity is None else user_entity.profilePhoto
+            "username": "Deleted Account" if _user is None else _user.username,
+            "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
         }
         return report

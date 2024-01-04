@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from core import get_db, JWTRepo, TokenResponse, ResponseSchema, JWTBearer, SupabaseService
 from modules.users import UserModel, UserLoginModel, UserEntity, UserRepository
 from .repository import AuthRepository
-from .model import AccountType, EmailModel
+from .model import AccountType, EmailModel, ForgetPasswordModel
 from helper import sent_email, sent_email_reset_password, rsa
 import json
 
@@ -140,7 +140,7 @@ async def check(id: str, db: Session = Depends(get_db)) -> ResponseSchema:
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 @router.post(
-    path='/forget-password',
+    path='/sent-forget-password/{email}',
     summary="forgot password",
     name='POST',
     response_model=ResponseSchema,
@@ -153,24 +153,21 @@ def forget_password(body: EmailModel, db: Session = Depends(get_db)):
         if _user is None:
             raise HTTPException(status_code=404, detail="Email not found")
 
-        message = json.dumps({
-            "email": body.email,
-        })
-        rsa_value = rsa.encrypt_message(message)
-        link = f"https://reportmanagement.online/reset-password?id={rsa_value}"
+        message = {
+            "sub": str(_user.id),
+        }
+        jwt_value = JWTRepo.generate_token(message)
+        link = f"https://reportmanagement.online/reset-password?verify={jwt_value}"
 
-        # sent_email_reset_password(
-        #     sender="noreplay@reportmanagement.online",
-        #     to=body.email,
-        #     link=link
-        # )
+        sent_email_reset_password(
+            sender="noreply@reportmanagement.online",
+            to=body.email,
+            link=link
+        )
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
-            message="Check your email to reset password.",
-            result={
-                "data": rsa_value
-            }
+            message="Check your email to reset password."
         )
     except HTTPException as http_error:
         raise http_error
@@ -178,32 +175,42 @@ def forget_password(body: EmailModel, db: Session = Depends(get_db)):
         print(error)
         raise HTTPException(status_code=500, detail="Internal server error.")
 
-
 @router.post(
-    path='/verify-reset-password',
+    path='/reset-password',
     summary="reset password",
     name='POST',
-    # response_model=ResponseSchema,
-    # response_model_exclude_none=True,
-    description="reset password"
+    response_model=ResponseSchema,
+    response_model_exclude_none=True,
+    description="reset password",
+    dependencies=[Depends(JWTBearer())],
 )
-def verify_id(id: str):
+def reset_password(body: ForgetPasswordModel, db: Session = Depends(get_db), _token: str = Depends(JWTBearer())):
     try:
-        decrypted_data = rsa.decrypt_message(id)
-        if decrypted_data is None:
-            raise HTTPException(status_code=404, detail="Invalid token")
+        _userId = JWTRepo.decode_token(_token)
+        _user = UserRepository.get_by_id(db, UserEntity, _userId)
+        if _user is None:
+            raise HTTPException(status_code=404, detail="user not found")
+
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        _user.password = pwd_context.hash(body.password)
+        is_updated = UserRepository.update(db, _user)
+        SupabaseService().supabase.auth.admin.update_user_by_id(
+            _user.id,
+            {
+                "password": body.password
+            }
+        )
+
+        if is_updated is None:
+            raise HTTPException(status_code=500, detail="Internal server error.")
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
-            message="Check your email to reset password.",
-            result={
-                "data": json.loads(decrypted_data)
-            }
+            message="Password reset successfully."
         )
-    except InvalidToken:
-        raise HTTPException(status_code=404, detail="Invalid token")
+    except HTTPException as http_error:
+        raise http_error
     except Exception as error:
         print(error)
         raise HTTPException(status_code=500, detail="Internal server error.")
-

@@ -80,6 +80,7 @@ class JWTRepo:
         except jwt.JWTError:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden.")
         except Exception as e:
+            print(e)
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
     @staticmethod
