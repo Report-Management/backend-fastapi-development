@@ -128,9 +128,11 @@ class ReportRepository(BaseRepo):
     def get_my_report(USERid: UUID, db: Session):
         reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).order_by(desc(ReportEntity.reportedTime)).all()
         if not reports:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Report with the USER {USERid} is not available")
+            ResponseSchema(
+                code=status.HTTP_200_OK,
+                status=StatusEnum.Success.value,
+                result=[]
+            )
         _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
