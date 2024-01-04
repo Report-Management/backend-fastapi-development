@@ -129,7 +129,8 @@ def create(
         return ReportRepository.create(body, db, JWTRepo.decode_token(token))
     except HTTPException as http_error:
         raise http_error
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 @router.get('/getSummary/{id}', name='GET_SUMMARY', response_model=ResponseSchema, response_model_exclude_none=True)
@@ -275,7 +276,8 @@ def upload_file(id: str, file: UploadFile, db: Session = Depends(get_db)):
         return ReportRepository.update_file(id, file, db)
     except HTTPException as http_error:
         raise http_error
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 @router.delete(path='/uploadFile/{id}', name="REMOVE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)

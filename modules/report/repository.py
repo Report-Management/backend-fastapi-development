@@ -62,7 +62,7 @@ class ReportRepository(BaseRepo):
                         )
                     )
         reports = query.all()
-        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -404,9 +404,10 @@ class ReportRepository(BaseRepo):
     @staticmethod
     def update_file(id: str, file: UploadFile, db):
         bucket = 'testbucket'
-        print(SupabaseService.is_file_exist(bucket, id))
-        if SupabaseService.is_file_exist(bucket, id):
-            is_deleted = SupabaseService.delete_image(bucket, id)
+        is_file_exist = SupabaseService.is_file_exist(bucket, id)
+        if is_file_exist is not None:
+            is_deleted = SupabaseService.delete_image(bucket, is_file_exist)
+            print(is_deleted)
             if is_deleted:
                 _url = SupabaseService.upload_file(bucket, file, id)
                 if _url:

@@ -30,29 +30,30 @@ class SupabaseService:
         return None
 
     @staticmethod
-    def delete_image(bucket: str, report_id: str) -> bool:
+    def delete_image(bucket: str, filename: str) -> bool:
         if bucket is None:
             bucket = SupabaseService().__storage_bucket
-        file_name = f"{report_id}.png"
-        response = SupabaseService().supabase.storage.from_(bucket).remove(file_name)
+        response = SupabaseService().supabase.storage.from_(bucket).remove(filename)
         if response is not []:
             return True
         return False
 
     @staticmethod
     def is_file_exist(bucket: str, filename: str):
+        print(bucket)
         if bucket is None:
             bucket = SupabaseService().__storage_bucket
-
-        filename = f"{filename}.png"
         response = SupabaseService().supabase.storage.from_(bucket).list()
+        print(response)
         if response is []:
-            return False
+            return None
 
         for image in response:
-            if image['name'] == filename:
-                return True
-        return False
+            image_file = f"{filename}.png"
+            video_file = f"{filename}.mp4"
+            if image['name'] == image_file or image['name'] == video_file:
+                return image['name']
+        return None
 
     @staticmethod
     def delete_user(id: str):
