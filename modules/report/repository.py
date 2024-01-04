@@ -1,12 +1,12 @@
 from core import BaseRepo, ResponseSchema, StatusEnum, SupabaseService
-from sqlalchemy import and_, UUID, not_, or_, desc, asc
+from sqlalchemy import and_, UUID, not_, or_
 from sqlalchemy.sql.expression import false
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile, File
 from typing import Dict, TypeVar
 from datetime import datetime, timedelta
 from modules.users.entity import UserEntity
-from .summarize import summary_by_gemini
+
 from .entity import ReportEntity
 from .model import *
 from .spam_detection import spam_or_ham
@@ -41,18 +41,16 @@ class ReportRepository(BaseRepo):
                 elif value == DateEnum.Yesterday:
                     yesterday = datetime.now() - timedelta(days=1)
                     query = query.filter(ReportEntity.reportedTime == yesterday)
-
                 elif value == DateEnum.LastMonth:
                     today = datetime.now()
-                    last_month_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
-                    last_month_end = last_month_start.replace(day=1) - timedelta(days=1)
+                    last_month_start = datetime(today.year, today.month - 1, 1)
+                    last_month_end = datetime(today.year, today.month, 1) - timedelta(days=1)
                     query = query.filter(
                         and_(
                             ReportEntity.reportedTime >= last_month_start,
                             ReportEntity.reportedTime <= last_month_end
-                            )
+                        )
                     )
-
                 elif value == DateEnum.LastYear:
                     today = datetime.now()
                     last_year_start = datetime(today.year - 1, 1, 1)
@@ -63,8 +61,8 @@ class ReportRepository(BaseRepo):
                             ReportEntity.reportedTime <= last_year_end
                         )
                     )
-        reports = query.order_by(desc(ReportEntity.reportedTime)).all()
-        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        reports = query.all()
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -78,7 +76,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.approval,
                 not_(ReportEntity.completed)
             )
-        ).order_by(asc(ReportEntity.reportedTime)).all()
+        ).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -93,20 +91,8 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": (
-                    "Deleted Account"
-                    if _user is None
-                    else _user.username
-                    if report.view == ViewEnum.Public.value
-                    else ViewEnum.Anonymous.value
-                ),
-                "profile": (
-                    "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg"
-                    if _user is None
-                    else _user.profilePhoto
-                    if report.view == ViewEnum.Public.value
-                    else "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/anonymous-man.png?t=2024-01-04T16%3A21%3A53.553Z"
-                ),
+                "username": None if _user is None else _user.username,
+                "profile": None if _user is None else _user.profilePhoto
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -128,13 +114,12 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_my_report(USERid: UUID, db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).order_by(asc(ReportEntity.reportedTime)).all()
-
+        reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).all()
         if not reports:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Report with the USER {USERid} is not available")
-        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -148,7 +133,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.completed,
                 ReportEntity.approval
             )
-        ).order_by(asc(ReportEntity.reportedTime)).all()
+        ).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -162,8 +147,8 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": "Deleted Account" if _user is None else _user.username,
-                "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
+                "username": None if _user is None else _user.username,
+                "profile": None if _user is None else _user.profilePhoto
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -174,7 +159,7 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_spam_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.spam).order_by(asc(ReportEntity.reportedTime)).all()
+        reports = db.query(ReportEntity).filter(ReportEntity.spam).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -188,8 +173,8 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": "Deleted Account" if _user is None else _user.username,
-                "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
+                "username": None if _user is None else _user.username,
+                "profile": None if _user is None else _user.profilePhoto
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -208,8 +193,21 @@ class ReportRepository(BaseRepo):
                 ),
                 ReportEntity.approval
             )
-        ).order_by(desc(ReportEntity.reportedTime)).all()
-        _list_report = [ReportEntity.to_model(report, _user=BaseRepo.get_by_id(db, UserEntity, report.userID)) for report in reports]
+        ).all()
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
+                        report in reports]
+        return ResponseSchema(
+            code=status.HTTP_200_OK,
+            status=StatusEnum.Success.value,
+            result=_list_report,
+        )
+
+    @staticmethod
+    def get_all_report_month(db: Session):
+        reports = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == 2023).all()
+        _list_report = [ReportEntity.to_model(report, user_entity=BaseRepo.get_by_id(db, UserEntity, report.userID)) for
+                        report in reports]
+
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
@@ -227,7 +225,7 @@ class ReportRepository(BaseRepo):
             view=request.view,
             photo=request.file,
             spam=spam_or_ham(request.information),
-            userID=user_id
+            userID=user_id if request.view == ViewEnum.Public.value else None
         )
         db.add(new_report)
         db.commit()
@@ -239,24 +237,22 @@ class ReportRepository(BaseRepo):
         )
 
     @staticmethod
-    def update_summary_report(id: UUID, db: Session):
-        report = db.query(ReportEntity).filter(ReportEntity.id == id).first()
-        if not report:
+    def update_summary(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id)
+        if not report.first():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
-
-
-        if report.summary is None:
-            summary_text = None
-            print(summary_text)
-            report.summary = summary_text
-            db.commit()
-
+        elif report.first().summary is not None:
+            return ResponseSchema(
+                code=status.HTTP_200_OK,
+                status=StatusEnum.Success.value,
+                result=report.first().summary
+            )
+        db.commit()
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
-            result=report.summary
+            result=str(report.first().summary)
         )
-
 
     @staticmethod
     def update_report(id: UUID, request: UpdateReportModel, db: Session):
