@@ -140,7 +140,7 @@ async def check(id: str, db: Session = Depends(get_db)) -> ResponseSchema:
         raise HTTPException(status_code=500, detail="Internal server error.")
 
 @router.post(
-    path='/sent-forget-password/{email}',
+    path='/sent-forget-password',
     summary="forgot password",
     name='POST',
     response_model=ResponseSchema,
