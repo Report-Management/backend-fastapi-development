@@ -190,7 +190,12 @@ class DashboardRepository(BaseRepo):
         year.append(0)
 
         # get all month of this year
-        month = list(range(int(datetime.datetime.now().month)+1))
+        months = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+                  "Oct", "Nov", "Dec"]
+        month = []
+        for i in range(int(datetime.datetime.now().month)+1):
+            month.append(months[i])
+
         thisyear = datetime.datetime.now().year
 
         return ResponseSchema(
