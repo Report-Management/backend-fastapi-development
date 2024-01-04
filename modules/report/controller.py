@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status, UploadFile, File, Form, HTTPExce
 from core import get_db, ResponseSchema, JWTBearer, JWTRepo, SupabaseService, StatusEnum
 from .model import *
 from .repository import ReportRepository
-from sqlalchemy import UUID
+from sqlalchemy import UUID, extract
 from datetime import datetime, timedelta
 from typing import TypeVar, Annotated, Dict
 
@@ -70,7 +70,6 @@ def get_my_report(token: UUID = Depends(JWTBearer()), db: Session = Depends(get_
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-
 @router.get(path='/showCompletedReport', name="Show completed report", response_model=ResponseSchema, response_model_exclude_none=True)
 def get_my_report(db: Session = Depends(get_db)):
     try:
@@ -94,16 +93,6 @@ def get_spam_report(db: Session = Depends(get_db)):
 def search_report(search: str, db: Session = Depends(get_db)):
     try:
         return ReportRepository.search_report(search, db)
-    except HTTPException as http_error:
-        raise http_error
-    except Exception:
-        return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
-
-
-@router.get(path='/dashboard/month', name='dashboard_MONTH', response_model=ResponseSchema, response_model_exclude_none=True)
-def report_month(db: Session = Depends(get_db)):
-    try:
-        return ReportRepository.get_all_report_month(db)
     except HTTPException as http_error:
         raise http_error
     except Exception:

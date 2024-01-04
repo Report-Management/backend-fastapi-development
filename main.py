@@ -6,6 +6,7 @@ from core import engine, Base
 from modules.auth.controller import router as auth_router
 from modules.users.controller import router as user_router
 from modules.report.controller import router as posts_router
+from modules.dashboard.controller import router as dashboard_router
 from fastapi.openapi.docs import (
     get_redoc_html,
     get_swagger_ui_html,
@@ -51,6 +52,7 @@ app.openapi = custom_swagger
 app.include_router(auth_router)
 app.include_router(user_router)
 app.include_router(posts_router)
+app.include_router(dashboard_router)
 
 app.add_middleware(
     CORSMiddleware,

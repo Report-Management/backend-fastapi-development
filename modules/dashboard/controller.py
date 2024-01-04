@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from .repository import DashboardRepository
-from core import get_db
+from core import get_db, ResponseSchema
 
 router = APIRouter(
     prefix="/dashboard",
@@ -11,7 +11,7 @@ router = APIRouter(
 )
 
 
-@router.get("/month", operation_id='dashboard_month')
+@router.get("/month", operation_id='dashboard_month', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_month(year, db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_month(db, year)
@@ -21,7 +21,7 @@ def dashboard_month(year, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/year",  operation_id='dashboard_year')
+@router.get("/year",  operation_id='dashboard_year', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_year(db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_year(db)
@@ -31,7 +31,7 @@ def dashboard_year(db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/detail", operation_id='dashboard_detail')
+@router.get("/detail", operation_id='dashboard_detail', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_detail(db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_detail(db)
@@ -41,7 +41,7 @@ def dashboard_detail(db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/category/all", operation_id='dashboard_categoty_all')
+@router.get("/category/all", operation_id='dashboard_categoty_all', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_category_all(db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_category_all(db)
@@ -51,7 +51,7 @@ def dashboard_category_all(db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/category", operation_id='dashboard_category_year')
+@router.get("/category", operation_id='dashboard_category_year', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_category_year(year, db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_category_year(db, year)
@@ -61,7 +61,7 @@ def dashboard_category_year(year, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/solve", operation_id='dashboard_solve')
+@router.get("/solve", operation_id='dashboard_solve', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_solve(year, month, db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_solve(db, year, month)
@@ -71,7 +71,7 @@ def dashboard_solve(year, month, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/spam", operation_id='dashboard_spam')
+@router.get("/spam", operation_id='dashboard_spam', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_spam(year, month, db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_spam(db, year, month)
@@ -81,7 +81,7 @@ def dashboard_spam(year, month, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.get("/date", operation_id='dashboard_date')
+@router.get("/date", operation_id='dashboard_date', response_model=ResponseSchema, response_model_exclude_none=True)
 def dashboard_date(db: Session = Depends(get_db)):
     try:
         return DashboardRepository.dashboard_date(db)
