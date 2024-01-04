@@ -99,7 +99,7 @@ def search_report(search: str, db: Session = Depends(get_db)):
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 
-@router.post(path='/create', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema,
+@router.post(path='/create_report', name='POST', dependencies=[Depends(JWTBearer())], response_model=ResponseSchema,
              response_model_exclude_none=True)
 def create(
         category: Annotated[CategoryEnum, Form()],
@@ -280,19 +280,7 @@ def upload_file(id: str, file: UploadFile, db: Session = Depends(get_db)):
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.delete(path='/uploadFile/{id}', name="REMOVE_FILE", response_model=ResponseSchema, response_model_exclude_none=True)
-def remove_file(id: str,  db: Session = Depends(get_db)):
-    if id is not type(str):
-        HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
-    try:
-        return ReportRepository.remove_file(id, db)
-    except HTTPException as http_error:
-        raise http_error
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
-
-
-@router.delete('/delete/{id}', name='DELETE', operation_id='delete_report')
+@router.delete('/delete_report/{id}', name='DELETE', operation_id='delete_report')
 def remove(id: int, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
