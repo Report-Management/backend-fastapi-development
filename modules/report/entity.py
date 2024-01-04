@@ -58,9 +58,22 @@ class ReportEntity(Base):
             "information": model.information,
             "approval": model.approval,
             "view": model.view,
+            "spam": model.spam,
             "file": model.photo,
             "time": format_relative_time(model.reportedTime),
-            "username": "Deleted Account" if _user is None else _user.username,
-            "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
+            "username": (
+                "Deleted Account"
+                if _user is None
+                else _user.username
+                if model.view == ViewEnum.Public.value
+                else ViewEnum.Anonymous.value
+            ),
+            "profile": (
+                "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg"
+                if _user is None
+                else _user.profilePhoto
+                if model.view == ViewEnum.Public.value
+                else "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/anonymous-man.png?t=2024-01-04T16%3A21%3A53.553Z"
+            ),
         }
         return report

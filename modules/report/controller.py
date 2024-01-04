@@ -47,7 +47,8 @@ def get_approve_reports(db: Session = Depends(get_db)):
         return ReportRepository.get_all_approve_reports(db)
     except HTTPException as http_error:
         raise http_error
-    except Exception:
+    except Exception as e:
+        print(e)
         return HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 @router.get(path='/show/{id}', name='Show by id', response_model=ResponseSchema, response_model_exclude_none=True,)

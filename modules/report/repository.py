@@ -1,5 +1,5 @@
 from core import BaseRepo, ResponseSchema, StatusEnum, SupabaseService
-from sqlalchemy import and_, UUID, not_, or_, desc
+from sqlalchemy import and_, UUID, not_, or_, desc, asc
 from sqlalchemy.sql.expression import false
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile, File
@@ -78,7 +78,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.approval,
                 not_(ReportEntity.completed)
             )
-        ).order_by(desc(ReportEntity.reportedTime)).all()
+        ).order_by(asc(ReportEntity.reportedTime)).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -93,8 +93,20 @@ class ReportRepository(BaseRepo):
                 "view": report.view,
                 "file": report.photo,
                 "time": format_relative_time(report.reportedTime),
-                "username": "Deleted Account" if _user is None else _user.username,
-                "profile": "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg" if _user is None else _user.profilePhoto,
+                "username": (
+                    "Deleted Account"
+                    if _user is None
+                    else _user.username
+                    if report.view == ViewEnum.Public.value
+                    else ViewEnum.Anonymous.value
+                ),
+                "profile": (
+                    "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/ee0da40e7d05f9c7fa31c693f2f21cec.jpg"
+                    if _user is None
+                    else _user.profilePhoto
+                    if report.view == ViewEnum.Public.value
+                    else "https://uazzhgvzukwpifcufyfg.supabase.co/storage/v1/object/public/profile/anonymous-man.png?t=2024-01-04T16%3A21%3A53.553Z"
+                ),
             }
             _list_report.append(data)
         return ResponseSchema(
@@ -116,7 +128,8 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_my_report(USERid: UUID, db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).order_by(desc(ReportEntity.reportedTime)).all()
+        reports = db.query(ReportEntity).filter(ReportEntity.userID == USERid).order_by(asc(ReportEntity.reportedTime)).all()
+
         if not reports:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -135,7 +148,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.completed,
                 ReportEntity.approval
             )
-        ).order_by(desc(ReportEntity.reportedTime)).all()
+        ).order_by(asc(ReportEntity.reportedTime)).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -161,7 +174,7 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_spam_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.spam).order_by(desc(ReportEntity.reportedTime)).all()
+        reports = db.query(ReportEntity).filter(ReportEntity.spam).order_by(asc(ReportEntity.reportedTime)).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
