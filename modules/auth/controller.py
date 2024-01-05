@@ -215,34 +215,3 @@ def reset_password(body: ForgetPasswordModel, db: Session = Depends(get_db), _to
         print(error)
         raise HTTPException(status_code=500, detail="Internal server error.")
 
-
-@router.put(
-    path='/change_name',
-    summary="change_name",
-    name='POST',
-    response_model=ResponseSchema,
-    response_model_exclude_none=True,
-    description="change_name",
-    dependencies=[Depends(JWTBearer())],
-)
-def change_name(name: str, _token: str = Depends(JWTBearer()), db: Session = Depends(get_db)):
-    try:
-        _userId = JWTRepo.decode_token(_token)
-        _user = UserRepository.get_by_id(db, UserEntity, _userId)
-        if _user is None:
-            raise HTTPException(status_code=404, detail="user not found")
-        _user.username = name
-        is_updated = UserRepository.update(db, _user)
-        if is_updated is None:
-            raise HTTPException(status_code=500, detail="Internal server error.")
-        return ResponseSchema(
-            code=status.HTTP_200_OK,
-            status="S",
-            message="Name change successfully."
-        )
-    except HTTPException as http_error:
-        raise http_error
-    except Exception as error:
-        print(error)
-        raise HTTPException(status_code=500, detail="Internal server error.")
-
