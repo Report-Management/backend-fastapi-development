@@ -133,15 +133,16 @@ def create(
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
-@router.get('/getSummary/{id}', name='GET_SUMMARY', response_model=ResponseSchema, response_model_exclude_none=True)
+@router.get(path='/getSummary/{id}', name='GET_SUMMARY', response_model=ResponseSchema, response_model_exclude_none=True)
 def update_summary(id: str, db: Session = Depends(get_db)):
     if id is not type(str):
         HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bad Request")
     try:
-        return ReportRepository.update_summary(id, db)
+        return ReportRepository.update_summary_report(id, db)
     except HTTPException as http_error:
         raise http_error
-    except Exception:
+    except Exception as e:
+        print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error.")
 
 

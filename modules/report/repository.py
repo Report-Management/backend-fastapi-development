@@ -9,6 +9,7 @@ from modules.users.entity import UserEntity
 from .entity import ReportEntity
 from .model import *
 from .spam_detection import spam_or_ham
+from .summarize import summary_by_gemini
 from helper.date import format_relative_time
 import uuid
 import json
@@ -263,21 +264,20 @@ class ReportRepository(BaseRepo):
         )
 
     @staticmethod
-    def update_summary(id: UUID, db: Session):
-        report = db.query(ReportEntity).filter(ReportEntity.id == id)
-        if not report.first():
+    def update_summary_report(id: UUID, db: Session):
+        report = db.query(ReportEntity).filter(ReportEntity.id == id).first()
+        if not report:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f'Report with id {id} not found')
-        elif report.first().summary is not None:
-            return ResponseSchema(
-                code=status.HTTP_200_OK,
-                status=StatusEnum.Success.value,
-                result=report.first().summary
-            )
-        db.commit()
+
+        if report.summary is None:
+            summary_text = summary_by_gemini(report.information)
+            report.summary = summary_text
+            db.commit()
+
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status=StatusEnum.Success.value,
-            result=str(report.first().summary)
+            result=report.summary
         )
 
     @staticmethod
