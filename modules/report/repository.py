@@ -76,7 +76,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.approval,
                 not_(ReportEntity.completed)
             )
-        ).order_by(asc(ReportEntity.reportedTime)).all()
+        ).order_by(desc(ReportEntity.reportedTime)).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -148,7 +148,7 @@ class ReportRepository(BaseRepo):
                 ReportEntity.completed,
                 ReportEntity.approval
             )
-        ).order_by(asc(ReportEntity.reportedTime)).all()
+        ).order_by(desc(ReportEntity.reportedTime)).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
@@ -186,7 +186,7 @@ class ReportRepository(BaseRepo):
 
     @staticmethod
     def get_spam_report(db: Session):
-        reports = db.query(ReportEntity).filter(ReportEntity.spam).order_by(asc(ReportEntity.reportedTime)).all()
+        reports = db.query(ReportEntity).filter(ReportEntity.spam).order_by(desc(ReportEntity.reportedTime)).all()
         _list_report = []
         for report in reports:
             _user: UserEntity = BaseRepo.get_by_id(db, UserEntity, report.userID)
