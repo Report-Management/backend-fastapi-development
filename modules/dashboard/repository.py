@@ -1,10 +1,11 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import extract
+from sqlalchemy import extract, func, distinct
 from core import BaseRepo, ResponseSchema
 from modules.report.entity import ReportEntity
 from core import ResponseSchema
 import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
+from itertools import groupby
 
 
 class DashboardRepository(BaseRepo):
@@ -12,19 +13,13 @@ class DashboardRepository(BaseRepo):
     def dashboard_month(db: Session, year: int):
         data = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == year)
 
-        dataset = []
+        current_month = datetime.datetime.now().month
+        months_range = range(1, current_month + 1) if int(year) == datetime.datetime.now().year else range(1, 13)
+
+        dataset = [data.filter(extract('month', ReportEntity.reportedTime) == i).count() for i in months_range]
         xLabels = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                    'November', 'December']
-        month = []
-
-        if int(year) == datetime.datetime.now().year:
-            for i in range(datetime.datetime.now().month):
-                dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
-                month.append(xLabels[i])
-        else:
-            for i in range(12):
-                dataset.append(data.filter(extract('month', ReportEntity.reportedTime) == i + 1).count())
-                month.append(xLabels[i])
+        month = [xLabels[i - 1] for i in months_range]
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
@@ -36,30 +31,22 @@ class DashboardRepository(BaseRepo):
             }
         )
 
-
     @staticmethod
     def dashboard_year(db: Session):
-        data = db.query(ReportEntity)
+        data = db.query(extract('year', ReportEntity.reportedTime).label('year'), func.count().label('count')).group_by(
+            extract('year', ReportEntity.reportedTime)).all()
 
-        # find all year in database
-        year = []
-        for i in range(len(data.all())):
-            if data.all()[i].reportedTime.strftime("%Y") not in year:
-                year.append(data.all()[i].reportedTime.strftime("%Y"))
-        year.sort()
-
-        # count reports per year
-        dataset = []
-        for i in range(len(year)):
-            dataset.append(data.filter(extract('year', ReportEntity.reportedTime) == year[i]).count())
+        years = [str(row.year) for row in data]
+        dataset = [row.count for row in data]
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
-            result={'title': "Reports Per Year",
-                    'xLabels': year,
-                    'datasets': dataset
-                    }
+            result={
+                'title': "Reports Per Year",
+                'xLabels': years,
+                'datasets': dataset
+            }
         )
 
     @staticmethod
@@ -86,43 +73,46 @@ class DashboardRepository(BaseRepo):
     def dashboard_category_all(db: Session):
         data = db.query(ReportEntity)
 
-        category = []
-        for i in range(len(data.all())):
-            if data.all()[i].category not in category:
-                category.append(data.all()[i].category)
+        # Use distinct to get unique categories directly from the database
+        categories = db.query(ReportEntity.category).distinct().all()
+        category_names = [category[0] for category in categories]
 
-        dataset = []
-        for i in range(len(category)):
-            dataset.append(data.filter(ReportEntity.category == category[i]).count())
+        # Use func.count and group_by to get counts for each category in a single query
+        dataset = db.query(ReportEntity.category, func.count(ReportEntity.category)).group_by(
+            ReportEntity.category).all()
+        dataset_counts = [count for category, count in dataset]
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
             result={'title': "Trending Category",
-                    'xLabels': category,
-                    'datasets': dataset
+                    'xLabels': category_names,
+                    'datasets': dataset_counts
                     }
         )
 
     @staticmethod
     def dashboard_category_year(db: Session, year: int):
-        data = db.query(ReportEntity).filter(extract('year', ReportEntity.reportedTime) == year)
+        # Use distinct to get unique categories directly from the database
+        categories = db.query(ReportEntity.category).filter(
+            extract('year', ReportEntity.reportedTime) == year).distinct().all()
+        category_names = [category[0] for category in categories]
 
-        category = []
-        for i in range(len(data.all())):
-            if data.all()[i].category not in category:
-                category.append(data.all()[i].category)
-
-        dataset = []
-        for i in range(len(category)):
-            dataset.append(data.filter(ReportEntity.category == category[i]).count())
+        # Use func.count and group_by to get counts for each category in a single query
+        dataset = (
+            db.query(ReportEntity.category, func.count(ReportEntity.category))
+            .filter(extract('year', ReportEntity.reportedTime) == year)
+            .group_by(ReportEntity.category)
+            .all()
+        )
+        dataset_counts = [count for category, count in dataset]
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
             result={'title': "Trending Category",
-                    'xLabels': category,
-                    'datasets': dataset
+                    'xLabels': category_names,
+                    'datasets': dataset_counts
                     }
         )
 
@@ -181,28 +171,23 @@ class DashboardRepository(BaseRepo):
     def dashboard_date(db: Session):
         data = db.query(ReportEntity)
 
-        # find all year in database
-        year = []
-        for i in range(len(data.all())):
-            if int(data.all()[i].reportedTime.strftime("%Y")) not in year:
-                year.append(int(data.all()[i].reportedTime.strftime("%Y")))
-        year.sort()
-        year.append(0)
+        # Find all unique years in the database
+        years = db.query(extract('year', ReportEntity.reportedTime)).distinct().all()
+        years = [int(year[0]) for year in years]
+        years.sort()
+        years.append(0)
 
-        # get all month of this year
-        months = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-                  "Oct", "Nov", "Dec"]
-        month = []
-        for i in range(int(datetime.datetime.now().month)+1):
-            month.append(months[i])
-
-        thisyear = datetime.datetime.now().year
+        # Get all months of this year
+        months = ["All", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        this_year = datetime.datetime.now().year
+        this_month = datetime.datetime.now().month
 
         return ResponseSchema(
             code=status.HTTP_200_OK,
             status="S",
-            result={'thisYear': thisyear,
-                    'allYear': year,
-                    'thisMonth': month
-                    }
+            result={
+                'thisYear': this_year,
+                'allYear': years,
+                'thisMonth': months[:this_month + 1]
+            }
         )
