@@ -43,8 +43,8 @@ class ReportRepository(BaseRepo):
                     query = query.filter(ReportEntity.reportedTime == yesterday)
                 elif value == DateEnum.LastMonth:
                     today = datetime.now()
-                    last_month_start = datetime(today.year, today.month - 1, 1)
-                    last_month_end = datetime(today.year, today.month, 1) - timedelta(days=1)
+                    last_month_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+                    last_month_end = last_month_start.replace(day=1) - timedelta(days=1)
                     query = query.filter(
                         and_(
                             ReportEntity.reportedTime >= last_month_start,
