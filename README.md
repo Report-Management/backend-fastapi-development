@@ -1,4 +1,4 @@
-# Restfull API for Report Management System
+# Restful API for Report Management System
 
 ### Authentication
 ![image info](assets/1.png)
